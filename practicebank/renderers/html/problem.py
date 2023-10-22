@@ -1,6 +1,7 @@
 """Renders a single problem to HTML."""
 
 import typing
+from textwrap import dedent
 
 from ... import types
 
@@ -41,7 +42,7 @@ def _(node: types.InlineCode):
 
 @_renderer(types.FillInTheBlank)
 def _(node: types.FillInTheBlank):
-    return f'<input type="text" class="fill-in-the-blank" />'
+    return f'<div class="fill-in-the-blank"><input type="text" class="fill-in-the-blank" /></div>'
 
 @_renderer(types.InlineMath)
 def _(node: types.InlineMath):
@@ -53,7 +54,12 @@ def _(node: types.DisplayMath):
 
 @_renderer(types.TrueFalse)
 def _(node: types.TrueFalse):
-    return f'<input type="checkbox" class="true-false" />'
+    return dedent("""
+        <div class="true-false">
+            <input type="radio" name="true-false" value="true" /> True
+            <input type="radio" name="true-false" value="false" /> False
+        </div>
+    """)
 
 @_renderer(types.Solution)
 def _(node: types.Solution):
@@ -67,23 +73,23 @@ def _(node: types.Subproblem):
 
 @_renderer(types.Image)
 def _(node: types.Image):
-    return f'<img src="{node.relative_path}" />'
+    return f'<center><div class="image"><img src="{node.relative_path}" /></div></center>'
 
 @_renderer(types.MultipleChoices)
 def _(node: types.MultipleChoices):
-    contents = "\n".join(_render_node(child) for child in node.children())
-    return f'<div class="multiple-choices">{contents}</div>'
+    # radio buttons
+    contents = "\n".join(_render_choice(child, "radio") for child in node.children())
+    return f'<div class="multiple-choices"><form>{contents}</form></div>'
+
 
 @_renderer(types.MultipleSelect)
 def _(node: types.MultipleSelect):
-    contents = "\n".join(_render_node(child) for child in node.children())
+    contents = "\n".join(_render_choice(child, "checkbox") for child in node.children())
     return f'<div class="multiple-select">{contents}</div>'
 
-@_renderer(types.Choice)
-def _(node: types.Choice):
+def _render_choice(node: types.Choice, kind: str):
     contents = "\n".join(_render_node(child) for child in node.children())
-    return f'<div class="choice">{contents}</div>'
-
+    return f'<div class="choice"><input type="{kind}" />{contents}</div>'
 
 
 

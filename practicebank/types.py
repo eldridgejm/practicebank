@@ -33,9 +33,12 @@ class InternalNode(ABC):
             raise IllegalChild(self, node)
         self._children.append(node)
 
-    def children(self):
+    def children(self) -> typing.Iterator[typing.Union["InternalNode", "LeafNode"]]:
         """Iterator over the child nodes."""
         return iter(self._children)
+
+    def number_of_children(self):
+        return len(self._children)
 
     def _attributes_equal(self, other):
         return all(getattr(self, attr) == getattr(other, attr) for attr in self.attrs)
@@ -72,6 +75,7 @@ class LeafNode(ABC):
     def __repr__(self):
         return f"{type(self).__name__}({self.__dict__!r})"
 
+
 class Problem(InternalNode):
     """A practice problem."""
 
@@ -80,34 +84,30 @@ class Subproblem(InternalNode):
     """A subproblem within a problem."""
 
 
-class NormalText(LeafNode):
+class Paragraph(InternalNode):
+    """A paragraph of text."""
+
+
+class TextNode(LeafNode, ABC):
+    """Abstract base class for text nodes."""
+
+    attrs = ("text",)
+
+    def __init__(self, text):
+        super().__init__()
+        self.text = text
+
+
+class NormalText(TextNode):
     """Text with no formatting."""
 
-    attrs = ("text",)
 
-    def __init__(self, text):
-        super().__init__()
-        self.text = text
-
-
-class BoldText(LeafNode):
+class BoldText(TextNode):
     """Text that should be bolded."""
 
-    attrs = ("text",)
 
-    def __init__(self, text):
-        super().__init__()
-        self.text = text
-
-
-class ItalicText(LeafNode):
+class ItalicText(TextNode):
     """Text that should be italicized."""
-
-    attrs = ("text",)
-
-    def __init__(self, text):
-        super().__init__()
-        self.text = text
 
 
 class DisplayMath(LeafNode):
@@ -223,6 +223,15 @@ Problem.allowed_child_types = (
     ItalicText,
     InlineMath,
     InlineCode,
+    Paragraph,
+)
+
+Paragraph.allowed_child_types = (
+    NormalText,
+    BoldText,
+    ItalicText,
+    InlineMath,
+    InlineCode,
 )
 
 # do not allow subproblems to contain subproblems
@@ -241,6 +250,7 @@ Choice.allowed_child_types = (
     Code,
     InlineCode,
     Image,
+    Paragraph,
 )
 
 Solution.allowed_child_types = Choice.allowed_child_types

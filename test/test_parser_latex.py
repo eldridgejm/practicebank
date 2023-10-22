@@ -4,6 +4,107 @@ from practicebank.parsers.latex import parse
 from practicebank import types
 
 
+def test_parses_into_multiple_paragraphs():
+    tree = parse(
+        dedent(
+            r"""
+            \begin{prob}
+            This is the \textbf{first} paragraph.
+
+            This is the second.
+
+            This is the third.
+            \end{prob}
+            """
+        )
+    )
+
+    expected = types.Problem(
+        children=[
+            types.Paragraph(
+                children=[
+                    types.NormalText("\nThis is the "),
+                    types.BoldText("first"),
+                    types.NormalText(" paragraph."),
+                ],
+            ),
+            types.Paragraph(children=[types.NormalText("This is the second.")]),
+            types.Paragraph(children=[types.NormalText("This is the third.\n")]),
+        ],
+    )
+
+    assert tree == expected
+
+
+def test_inline_math_is_included_in_same_paragraph_as_text():
+    tree = parse(r"\begin{prob}This is $x^2$.\end{prob}")
+
+    expected = types.Problem(
+        children=[
+            types.Paragraph(
+                children=[
+                    types.NormalText("This is "),
+                    types.InlineMath("x^2"),
+                    types.NormalText("."),
+                ],
+            ),
+        ],
+    )
+
+    assert tree == expected
+
+
+def test_paragraph_splitting_is_done_recursively():
+    tree = parse(
+        dedent(
+            r"""
+            \begin{prob}
+            This is the \textbf{first} paragraph.
+
+            \begin{soln}
+                This is the second.
+
+                This is the third.
+            \end{soln}
+            \end{prob}
+            """
+        )
+    )
+
+    expected = types.Problem(
+        children=[
+            types.Paragraph(
+                children=[
+                    types.NormalText("\nThis is the "),
+                    types.BoldText("first"),
+                    types.NormalText(" paragraph."),
+                ]
+            ),
+            types.Paragraph(
+                children=[
+                    types.NormalText(""),
+                ]
+            ),
+            types.Solution(
+                children=[
+                    types.Paragraph(
+                        children=[
+                            types.NormalText("\n    This is the second."),
+                        ]
+                    ),
+                    types.Paragraph(
+                        children=[
+                            types.NormalText("    This is the third.\n"),
+                        ]
+                    ),
+                ]
+            ),
+        ],
+    )
+
+    assert tree == expected
+
+
 def test_parses_empty_problem():
     tree = parse(r"\begin{prob}\end{prob}")
 
@@ -13,30 +114,17 @@ def test_parses_empty_problem():
 def test_parses_problem_with_text_inside():
     tree = parse(r"\begin{prob}hello world\end{prob}")
 
-    expected = types.Problem()
-    expected.add_child(types.NormalText("hello world"))
+    expected = types.Problem(
+        children=[
+            types.Paragraph(
+                children=[
+                    types.NormalText("hello world"),
+                ]
+            )
+        ]
+    )
 
     assert tree == expected
-
-
-def test_parses_problem_with_two_paragraphs():
-    tree = parse(
-        dedent(
-            r"""
-            \begin{prob}
-               hello world
-
-               goodbye world
-             \end{prob}
-           """
-        )
-    )
-
-    assert tree == types.Problem(
-        children=[
-            types.NormalText("\n   hello world\n\n   goodbye world\n "),
-        ],
-    )
 
 
 def test_parses_problem_with_bold_text():
@@ -52,8 +140,12 @@ def test_parses_problem_with_bold_text():
 
     assert tree == types.Problem(
         children=[
-            types.NormalText("\n    hello "),
-            types.BoldText("world"),
+            types.Paragraph(
+                children=[
+                    types.NormalText("\n    hello "),
+                    types.BoldText("world"),
+                ]
+            )
         ]
     )
 
@@ -90,8 +182,12 @@ def test_parses_problem_with_inline_math():
 
     assert tree == types.Problem(
         children=[
-            types.NormalText("\n    hello "),
-            types.InlineMath("f(x) = 42"),
+            types.Paragraph(
+                children=[
+                    types.NormalText("\n    hello "),
+                    types.InlineMath("f(x) = 42"),
+                ]
+            )
         ]
     )
 
@@ -109,7 +205,7 @@ def test_parses_problem_with_dollar_dollar_math():
 
     assert tree == types.Problem(
         children=[
-            types.NormalText("\n    hello "),
+            types.Paragraph(children=[types.NormalText("\n    hello ")]),
             types.DisplayMath("f(x) = 42"),
         ]
     )
@@ -128,7 +224,7 @@ def test_parses_problem_with_display_math():
 
     assert tree == types.Problem(
         children=[
-            types.NormalText("\n    hello "),
+            types.Paragraph(children=[types.NormalText("\n    hello ")]),
             types.DisplayMath("f(x) = 42"),
         ]
     )
@@ -176,7 +272,11 @@ def test_parses_problem_with_mintinline_code():
 
     assert tree == types.Problem(
         children=[
-            types.InlineCode("python", "def f(x): return x + 1"),
+            types.Paragraph(
+                children=[
+                    types.InlineCode("python", "def f(x): return x + 1"),
+                ]
+            )
         ]
     )
 
@@ -202,18 +302,30 @@ def test_problem_with_multiple_choices():
                 children=[
                     types.Choice(
                         children=[
-                            types.NormalText(" hello "),
-                            types.BoldText("world"),
+                            types.Paragraph(
+                                children=[
+                                    types.NormalText(" hello "),
+                                    types.BoldText("world"),
+                                ]
+                            )
                         ]
                     ),
                     types.Choice(
                         children=[
-                            types.NormalText(" goodbye world\n        "),
+                            types.Paragraph(
+                                children=[
+                                    types.NormalText(" goodbye world\n        "),
+                                ]
+                            )
                         ]
                     ),
                     types.Choice(
                         children=[
-                            types.NormalText(" goodbye world\n    "),
+                            types.Paragraph(
+                                children=[
+                                    types.NormalText(" goodbye world\n    "),
+                                ]
+                            )
                         ],
                         correct=True,
                     ),
@@ -244,18 +356,30 @@ def test_problem_with_multiple_select():
                 children=[
                     types.Choice(
                         children=[
-                            types.NormalText(" hello "),
-                            types.BoldText("world"),
+                            types.Paragraph(
+                                children=[
+                                    types.NormalText(" hello "),
+                                    types.BoldText("world"),
+                                ]
+                            )
                         ]
                     ),
                     types.Choice(
                         children=[
-                            types.NormalText(" goodbye world\n        "),
+                            types.Paragraph(
+                                children=[
+                                    types.NormalText(" goodbye world\n        "),
+                                ]
+                            )
                         ]
                     ),
                     types.Choice(
                         children=[
-                            types.NormalText(" goodbye world\n    "),
+                            types.Paragraph(
+                                children=[
+                                    types.NormalText(" goodbye world\n    "),
+                                ]
+                            )
                         ],
                         correct=True,
                     ),
@@ -288,8 +412,12 @@ def test_problem_with_code_in_multiple_choice():
                 children=[
                     types.Choice(
                         children=[
-                            types.NormalText(" hello "),
-                            types.BoldText("world"),
+                            types.Paragraph(
+                                children=[
+                                    types.NormalText(" hello "),
+                                    types.BoldText("world"),
+                                ]
+                            )
                         ]
                     ),
                     types.Choice(
@@ -327,10 +455,18 @@ def test_problem_with_solution():
 
     assert tree == types.Problem(
         children=[
-            types.NormalText("\n    hello world\n    "),
+            types.Paragraph(
+                children=[
+                    types.NormalText("\n    hello world\n    "),
+                ]
+            ),
             types.Solution(
                 children=[
-                    types.NormalText("\n        goodbye world\n    "),
+                    types.Paragraph(
+                        children=[
+                            types.NormalText("\n        goodbye world\n    "),
+                        ]
+                    )
                 ]
             ),
         ]
@@ -351,7 +487,11 @@ def test_problem_with_Tf():
 
     assert tree == types.Problem(
         children=[
-            types.NormalText("\n    hello world\n    "),
+            types.Paragraph(
+                children=[
+                    types.NormalText("\n    hello world\n    "),
+                ]
+            ),
             types.TrueFalse(solution=True),
         ]
     )
@@ -371,7 +511,11 @@ def test_problem_with_tF():
 
     assert tree == types.Problem(
         children=[
-            types.NormalText("\n    hello world\n    "),
+            types.Paragraph(
+                children=[
+                    types.NormalText("\n    hello world\n    "),
+                ]
+            ),
             types.TrueFalse(solution=False),
         ]
     )
@@ -392,22 +536,33 @@ def test_problem_with_inline_response_box():
         )
     )
 
-    assert tree == types.Problem(
+    expected = types.Problem(
         children=[
-            types.NormalText(
-                "\n    What is the ",
+            types.Paragraph(
+                children=[
+                    types.NormalText(
+                        "\n    What is the ",
+                    ),
+                    types.BoldText("worst case"),
+                    types.NormalText(
+                        " time complexity of the function in the last problem?\n    State your answer using asymptotic notation.",
+                    ),
+                ]
             ),
-            types.BoldText("worst case"),
-            types.NormalText(
-                " time complexity of the function in the last problem?\n    State your answer using asymptotic notation.\n\n    ",
-            ),
+            types.Paragraph(children=[types.NormalText("    ")]),
             types.FillInTheBlank(
                 children=[
-                    types.InlineMath("\\Theta(n^2)"),
+                    types.Paragraph(
+                        children=[
+                            types.InlineMath("\\Theta(n^2)"),
+                        ]
+                    )
                 ]
             ),
         ]
     )
+
+    assert tree == expected
 
 
 def test_includegraphics(tmp_path):
@@ -481,18 +636,33 @@ def test_subproblems():
         )
     )
 
-    assert tree == types.Problem(
+    expected = types.Problem(
         children=[
-            types.NormalText("\n    This is the problem.\n\n    "),
+            types.Paragraph(
+                children=[
+                    types.NormalText("\n    This is the problem."),
+                ]
+            ),
+            types.Paragraph(children=[types.NormalText("    ")]),
             types.Subproblem(
                 children=[
-                    types.NormalText("\n        hello world\n    "),
+                    types.Paragraph(
+                        children=[
+                            types.NormalText("\n            hello world\n        "),
+                        ]
+                    )
                 ]
             ),
             types.Subproblem(
                 children=[
-                    types.NormalText("\n        goodbye world\n    "),
+                    types.Paragraph(
+                        children=[
+                            types.NormalText("\n            goodbye world\n        "),
+                        ]
+                    )
                 ]
             ),
         ]
     )
+
+    assert tree == expected
