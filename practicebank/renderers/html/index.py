@@ -110,7 +110,10 @@ def _fix_image_paths(problem: types.Problem, path_to_image_directory: str):
 
 
 def _generate_tag_index(
-    problems: typing.List[types.Problem], directory: pathlib.Path, tag: str
+    problems: typing.List[types.Problem],
+    directory: pathlib.Path,
+    tag: str,
+    template=DEFAULT_TEMPLATE,
 ):
     """Generates tag indices under <directory>/tags."""
     problems_with_tag = [p.deep_copy() for p in problems if tag in p.metadata.tags]
@@ -121,38 +124,44 @@ def _generate_tag_index(
     html = '<h1>Practice Problems Tagged: "{}"</h1>'.format(tag)
     html += "<p>Go back to <a href='../index.html'>practice problems index</a>.</p>"
     html += "\n".join(render(p) for p in problems_with_tag)
-    html = DEFAULT_TEMPLATE.format(body=html, path_to_root="../")
+    html = template.format(body=html, path_to_root="../")
     with open(directory / "tags" / f"{_format_tag(tag)}.html", "w") as f:
         f.write(html)
 
 
 def _generate_all_problems_index(
-    problems: typing.List[types.Problem], directory: pathlib.Path
+    problems: typing.List[types.Problem],
+    directory: pathlib.Path,
+    template=DEFAULT_TEMPLATE,
 ):
     # generate index of all problems
     html = "<h1>All Practice Problems</h1>"
     html += "<p>Go back to <a href='index.html'>practice problems index</a>.</p>"
     html += "\n".join(render(p) for p in problems)
-    html = DEFAULT_TEMPLATE.format(body=html, path_to_root="")
+    html = template.format(body=html, path_to_root="")
 
     with open(directory / "all.html", "w") as f:
         f.write(html)
 
 
 def _generate_untagged_problems_index(
-    problems: typing.List[types.Problem], directory: pathlib.Path
+    problems: typing.List[types.Problem],
+    directory: pathlib.Path,
+    template=DEFAULT_TEMPLATE,
 ):
     # generate index of untagged problems, if there are any
     untagged_problems = [p for p in problems if not p.metadata.tags]
     if untagged_problems:
         html = "<h1>Untagged Practice Problems</h1>"
         html += "\n".join(render(p) for p in untagged_problems)
-        html = DEFAULT_TEMPLATE.format(body=html, path_to_root="")
+        html = template.format(body=html, path_to_root="")
         with open(directory / "untagged.html", "w") as f:
             f.write(html)
 
 
-def _generate_main_page(directory: pathlib.Path, tags: typing.Collection[str]):
+def _generate_main_page(
+    directory: pathlib.Path, tags: typing.Collection[str], template=DEFAULT_TEMPLATE
+):
     # generate index
     html = "<h1>Practice Problems</h1>"
     html += "<h2>By Tag</h2>"
@@ -168,7 +177,7 @@ def _generate_main_page(directory: pathlib.Path, tags: typing.Collection[str]):
     """
     )
 
-    html = DEFAULT_TEMPLATE.format(body=html, path_to_root="")
+    html = template.format(body=html, path_to_root="")
     with open(directory / "index.html", "w") as f:
         f.write(html)
 
@@ -208,12 +217,12 @@ def generate(
     # generate tag index pages
     (directory / "tags").mkdir()
     for tag in all_tags:
-        _generate_tag_index(problems, directory, tag)
+        _generate_tag_index(problems, directory, tag, template=template)
 
     # point all image paths to the "images/" directory
     for problem in problems:
         _fix_image_paths(problem, path_to_image_directory="images/")
 
-    _generate_all_problems_index(problems, directory)
-    _generate_untagged_problems_index(problems, directory)
-    _generate_main_page(directory, all_tags)
+    _generate_all_problems_index(problems, directory, template=template)
+    _generate_untagged_problems_index(problems, directory, template=template)
+    _generate_main_page(directory, all_tags, template=template)
