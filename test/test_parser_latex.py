@@ -521,50 +521,6 @@ def test_problem_with_tF():
     )
 
 
-def test_problem_with_inline_response_box():
-    tree = parse(
-        dedent(
-            r"""
-            \begin{prob}
-                What is the \textbf{worst case} time complexity of the function in the last problem?
-                State your answer using asymptotic notation.
-
-                \inlineresponsebox{$\Theta(n^2)$}
-
-            \end{prob}
-               """
-        )
-    )
-
-    expected = types.Problem(
-        children=[
-            types.Paragraph(
-                children=[
-                    types.NormalText(
-                        "\n    What is the ",
-                    ),
-                    types.BoldText("worst case"),
-                    types.NormalText(
-                        " time complexity of the function in the last problem?\n    State your answer using asymptotic notation.",
-                    ),
-                ]
-            ),
-            types.Paragraph(children=[types.NormalText("    ")]),
-            types.FillInTheBlank(
-                children=[
-                    types.Paragraph(
-                        children=[
-                            types.InlineMath("\\Theta(n^2)"),
-                        ]
-                    )
-                ]
-            ),
-        ]
-    )
-
-    assert tree == expected
-
-
 def test_includegraphics(tmp_path):
     image_path = tmp_path / "image.png"
     image_path.write_text("hello world")

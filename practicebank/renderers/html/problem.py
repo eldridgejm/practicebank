@@ -5,14 +5,13 @@ from textwrap import dedent
 
 from ... import types
 
-_Node = typing.Union[types.InternalNode, types.LeafNode]
 
 _RENDERERS = {}
 
 
-def _renderer(name: _Node):
+def _renderer(nodetype):
     def decorator(fn):
-        _RENDERERS[name] = fn
+        _RENDERERS[nodetype] = fn
         return fn
 
     return decorator
@@ -20,8 +19,56 @@ def _renderer(name: _Node):
 
 @_renderer(types.Problem)
 def _(node: types.Problem):
+    html = dedent(
+        """
+        <div class="problem">
+            {metadata}
+            <div class="problem-body">
+                {contents}
+            </div>
+        </div>
+        """.strip()
+    )
+
+    if node.metadata is not None:
+        metadata = dedent(
+            f"""
+            <h2 class="problem-id">Problem {node.metadata.id}</h2>
+            """.strip()
+        )
+
+        if node.metadata.tags:
+            metadata += "<div class=\"problem-tags\">"
+            metadata += "tags: " + ", ".join(node.metadata.tags)
+            metadata += "</div>"
+
+    else:
+        metadata = ""
+
+    subprob_counter = 1
+    rendered_children = []
+    for child in node.children():
+        if isinstance(child, types.Subproblem):
+            rendered_children.append(_render_subproblem(child, subprob_counter))
+            subprob_counter += 1
+        else:
+            rendered_children.append(_render_node(child))
+
+    contents = "\n".join(rendered_children)
+    return html.format(metadata=metadata, contents=contents)
+
+
+def _render_subproblem(node: types.Subproblem, counter: int):
+    html = dedent(
+        """
+        <div class="subproblem">
+            <h3 class="subproblem-id">Part {counter})</h3>
+            {contents}
+        </div>
+        """.strip()
+    )
     contents = "\n".join(_render_node(child) for child in node.children())
-    return f'<div class="problem">{contents}</div>'
+    return html.format(counter=counter, contents=contents)
 
 
 @_renderer(types.NormalText)
@@ -49,14 +96,9 @@ def _(node: types.InlineCode):
     return f'<span class="inline-code"><code>{node.code}</code></span>'
 
 
-@_renderer(types.FillInTheBlank)
-def _(node: types.FillInTheBlank):
-    return f'<div class="fill-in-the-blank"><input type="text" class="fill-in-the-blank" /></div>'
-
-
 @_renderer(types.InlineMath)
 def _(node: types.InlineMath):
-    return f'<span class="math">${node.latex}$</span>'
+    return f'<span class="math">\\({node.latex}\\)</span>'
 
 
 @_renderer(types.DisplayMath)
@@ -82,12 +124,6 @@ def _(node: types.Solution):
     return f"<details><summary>Solution</summary>{contents}</details>"
 
 
-@_renderer(types.Subproblem)
-def _(node: types.Subproblem):
-    contents = "\n".join(_render_node(child) for child in node.children())
-    return f'<div class="subproblem">{contents}</div>'
-
-
 @_renderer(types.Image)
 def _(node: types.Image):
     return (
@@ -100,7 +136,6 @@ def _render_choice(node: types.Choice, kind: str):
     # return f'<div class="choice"><input type="{kind}" />{contents}</div>'
     # place the checkbox/radio on the same line as the contents
     return f'<div class="choice"><label><input name="choice" class="choice" type="{kind}" />{contents}</label></div>'
-
 
 
 @_renderer(types.MultipleChoices)
@@ -120,6 +155,9 @@ def _(node: types.MultipleSelect):
 def _(node: types.Paragraph):
     contents = "".join(_render_node(child) for child in node.children())
     return f"<p>{contents}</p>"
+
+
+_Node = typing.Union[types.InternalNode, types.LeafNode]
 
 
 def _render_node(node: _Node):

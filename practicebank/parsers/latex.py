@@ -66,6 +66,7 @@ def _(tex_node: TexSoup.data.TexNode, context: _Context):
 def _(node: TexSoup.data.TexCmd, _):
     return types.BoldText(node.string)
 
+
 @_cmd_parser("textit")
 def _(node: TexSoup.data.TexCmd, _):
     return types.ItalicText(node.string)
@@ -88,7 +89,7 @@ def _(node: TexSoup.data.TexNode, _):
 
 @_env_parser("align")
 def _(node: TexSoup.data.TexNode, _):
-    return types.DisplayMath(node.expr.string)
+    return types.DisplayMath("\\begin{aligned}" + node.expr.string + "\\end{aligned}")
 
 
 @_env_parser("minted")
@@ -116,13 +117,6 @@ def _(node: TexSoup.data.TexCmd, _):
 @_cmd_parser("tF")
 def _(node: TexSoup.data.TexCmd, _):
     return types.TrueFalse(False)
-
-
-@_cmd_parser("inlineresponsebox")
-def _(node: TexSoup.data.TexCmd, context: _Context):
-    return types.FillInTheBlank(
-        children=[_convert_soup_node(child, context=context) for child in node.contents]
-    )
 
 
 @_cmd_parser("includegraphics")
@@ -384,6 +378,7 @@ def _paragraphize(node: types.InternalNode):
     tree with the same general structure but with paragraph nodes added.
 
     """
+
     # we begin by copying the current node into a new node, but without the children;
     # that is, we only copy attributes
     def _copy(n: types.InternalNode):

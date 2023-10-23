@@ -17,6 +17,8 @@
             name = "practicebank";
             src = ./.;
             propagatedBuildInputs = with python3Packages; [
+              pyyaml
+
               # texsoup
               (
                 pkgs.python3Packages.buildPythonPackage rec {

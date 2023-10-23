@@ -40,6 +40,13 @@ class InternalNode(ABC):
     def number_of_children(self):
         return len(self._children)
 
+    def deep_copy(self):
+        """Return a deep copy of this node."""
+        return type(self)(
+            children=[child.deep_copy() for child in self._children],
+            **{attr: getattr(self, attr) for attr in self.attrs},
+        )
+
     def _attributes_equal(self, other):
         return all(getattr(self, attr) == getattr(other, attr) for attr in self.attrs)
 
@@ -66,6 +73,10 @@ class LeafNode(ABC):
     def _attributes_equal(self, other):
         return all(getattr(self, attr) == getattr(other, attr) for attr in self.attrs)
 
+    def deep_copy(self):
+        """Return a deep copy of this node."""
+        return type(self)(**{attr: getattr(self, attr) for attr in self.attrs})
+
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return False
@@ -76,8 +87,39 @@ class LeafNode(ABC):
         return f"{type(self).__name__}({self.__dict__!r})"
 
 
+class ProblemMetadata(typing.NamedTuple):
+    """Metadata about a practice problem.
+
+    Attributes
+    ----------
+    id : str
+        A unique identifier for the problem. Should be human-readable.
+    tags : List[str]
+        The tags associated with the problem.
+
+    """
+
+    id: str
+    tags: typing.List[str]
+
+
 class Problem(InternalNode):
-    """A practice problem."""
+    """A practice problem.
+
+    Attributes
+    ----------
+    metadata : Optional[ProblemMetadata]
+        Metadata about the problem.
+
+    """
+
+    attrs = ("metadata",)
+
+    def __init__(
+        self, *, children=None, metadata: typing.Optional[ProblemMetadata] = None
+    ):
+        super().__init__(children=children)
+        self.metadata = metadata
 
 
 class Subproblem(InternalNode):
@@ -200,10 +242,6 @@ class TrueFalse(LeafNode):
         self.solution = solution
 
 
-class FillInTheBlank(InternalNode):
-    """A fill-in-the-blank question."""
-
-
 class Solution(InternalNode):
     """A solution to a problem."""
 
@@ -216,7 +254,6 @@ Problem.allowed_child_types = (
     MultipleChoices,
     MultipleSelect,
     TrueFalse,
-    FillInTheBlank,
     Solution,
     NormalText,
     BoldText,
@@ -254,4 +291,3 @@ Choice.allowed_child_types = (
 )
 
 Solution.allowed_child_types = Choice.allowed_child_types
-FillInTheBlank.allowed_child_types = Choice.allowed_child_types

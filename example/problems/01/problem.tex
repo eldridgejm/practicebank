@@ -1,0 +1,27 @@
+%% tags:
+%%  - foo
+%%  - bar
+%%  - baz
+\begin{prob}
+    This is the first sentence.
+
+    This is supposed to be a second paragraph.
+
+    This is a \textbf{test}.
+
+    \begin{minted}[autogobble]{python}
+        def foo(n):
+            for i in range(n**3):
+                for j in range(n):
+                    print(i + j)
+                for j in range(n**2):
+                    print(i + j)
+    \end{minted}
+
+    \begin{soln}
+        $\Theta(n^5)$
+
+        \includegraphics{\thisdir/image.png}
+    \end{soln}
+
+\end{prob}

@@ -1,0 +1,31 @@
+div.problem {
+    margin-top: 2em;
+    margin-bottom: 2em;
+    padding: 1em;
+    width: 70%;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+div.true-false {
+    margin: 1em;
+}
+
+div.fill-in-the-blank {
+    margin: 1em;
+}
+
+div.subproblem {
+}
+
+div.choice label {
+    display: flex;
+    margin-bottom: 1em;
+}
+
+div.choice p {
+    margin: 0;
+    padding: 0;
+    margin-left: .5em;
+};
+

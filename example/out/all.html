@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <title>Practice Problems</title>
+        <link rel="stylesheet" href="style.css">
+
+        <script type="text/x-mathjax-config">
+          MathJax.Hub.Config({
+            tex: {
+              inlineMath: [ ['$$','$$'], ["\(","\)"] ],
+              displayMath: [             // start/end delimiter pairs for display math
+                  ['\[', '\]']
+              ],
+              processEscapes: true
+            }
+          });
+        </script>
+
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script type="text/javascript" id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+        </script>
+    </head>
+    <body>
+        <h1>All Practice Problems</h1><p>Go back to <a href='index.html'>practice problems index</a>.</p><div class="problem">
+            <h2 class="problem-id">Problem 01</h2><div class="problem-tags">tags: foo, bar, baz</div>
+            <div class="problem-body">
+                <p>
+    This is the first sentence.</p>
+<p>    This is supposed to be a second paragraph.</p>
+<p>    This is a <b>test</b>.</p>
+<p>    </p>
+<pre class="code"><code>
+def foo(n):
+    for i in range(n**3):
+        for j in range(n):
+            print(i + j)
+        for j in range(n**2):
+            print(i + j)
+</code></pre>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(n^5)\)</span></p>
+<center><div class="image"><img src="images//01/image.png" /></div></center></details>
+            </div>
+        </div>
+<div class="problem">
+            <h2 class="problem-id">Problem 02</h2><div class="problem-tags">tags: foo, that, the other</div>
+            <div class="problem-body">
+                <pre class="code"><code>def foo(n):
+    for i in range(n):
+        for j in range(i):
+            for k in range(n):
+                print(i + j + k)
+
+foo(100)
+</code></pre>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(n^3)\)</span></p></details>
+            </div>
+        </div>
+<div class="problem">
+            <h2 class="problem-id">Problem 03</h2>
+            <div class="problem-body">
+                <pre class="code"><code>def foo(n):
+    for i in range(200, n):
+        for j in range(i, 2*i + n**2):
+            print(i + j)
+
+foo(100)
+</code></pre>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(n^3)\)</span></p></details>
+            </div>
+        </div>
+<div class="problem">
+            <h2 class="problem-id">Problem 04</h2>
+            <div class="problem-body">
+                <pre class="code"><code>import math
+
+def foo(arr):
+    """`arr` is an array with n elements."""
+    n = len(arr)
+    ix = 1
+    s = 0
+
+    while ix < n:
+        s = s + arr[ix]
+        ix = ix * 5 + 2
+
+    return s
+
+foo([1, 2, 3, 4, 5])
+</code></pre>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(\log n)\)</span></p></details>
+            </div>
+        </div>
+<div class="problem">
+            <h2 class="problem-id">Problem 05</h2>
+            <div class="problem-body">
+                <p>
+    The code below takes in an array of <span class="math">\(n\)</span> numbers and checks whether there is a pair
+    of numbers in the array which, when added together, equal the maximum element of the
+    array.</p>
+<p>    What is the <b>best case</b> time complexity of this code as a function of <span class="math">\(n\)</span>?
+    State your answer using asymptotic notation.</p>
+<p>    </p>
+<pre class="code"><code>def exists_pair_summing_to_max(arr):
+    n = len(arr)
+    maximum = max(arr)
+    for i in range(n):
+        for j in range(i + 1, n):
+            if arr[i] + arr[j] == maximum:
+                return True
+    return False
+
+
+assert exists_pair_summing_to_max([1, 4, 2, 3, 8, 3, 5])
+</code></pre>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(n)\)</span></p></details>
+            </div>
+        </div>
+<div class="problem">
+            <h2 class="problem-id">Problem 06</h2>
+            <div class="problem-body">
+                <p>
+    What is the <b>worst case</b> time complexity of the function in the last problem?
+    State your answer using asymptotic notation.</p>
+<p>    </p>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(n^2)\)</span></p></details>
+            </div>
+        </div>
+<div class="problem">
+            <h2 class="problem-id">Problem 07</h2>
+            <div class="problem-body">
+                <p>
+    Consider again the problem of determining whether there exists a pair of numbers
+    in an array which, when added together, equal the maximum number in the array.
+    Additionally, <b>assume that the array is sorted</b>.</p>
+<p>    True or False: <span class="math">\(\Theta(n)\)</span> is a <b>tight</b> theoretical lower bound for this
+    problem.</p>
+<p>    </p>
+
+<div class="true-false">
+    <input type="radio" name="true-false" value="true" /> True
+    <input type="radio" name="true-false" value="false" /> False
+</div>
+
+<details><summary>Solution</summary><p>
+        Any algorithm must take <span class="math">\(\Omega(n)\)</span> time in the worst case, since in the worst
+        case all elements of the array must be read.</p>
+<p>        This is tight because there is an algorithm that will compute the answer in
+        worst-case <span class="math">\(\Theta(n)\)</span> time. Namely, this is an instance of the ``movie problem''
+        from lecture, where instead of finding two numbers which add to an arbitrary
+        target, we're looking for a specific target: the maximum. We saw an algorithm
+        that solved the movie problem in <span class="math">\(\Theta(n)\)</span> time, where <span class="math">\(n\)</span> was the number of
+        movies.
+        Since the maximum
+        is computed in <span class="math">\(\Theta(1)\)</span> time for a sorted array, we can use the same algorithm
+        to solve this in <span class="math">\(\Theta(n)\)</span> time as well.
+    </p></details>
+            </div>
+        </div>
+<div class="problem">
+            <h2 class="problem-id">Problem 08</h2>
+            <div class="problem-body">
+                <p>(2 points)
+    Suppose <span class="math">\(a\)</span> and <span class="math">\(b\)</span> are two numbers, with <span class="math">\(a \leq b\)</span>.
+    Consider the problem of counting the number of elements in an array which
+    are between <span class="math">\(a\)</span> and <span class="math">\(b\)</span>; that is, the number of elements <span class="math">\(x\)</span> such that <span class="math">\(a
+    \leq x \leq b\)</span>. You may assume for simplicity that both <span class="math">\(a\)</span> and <span class="math">\(b\)</span> are in the array,
+    and there are no duplicates.</p>
+<p>    </p>
+<div class="subproblem">
+            <h3 class="subproblem-id">Part 1)</h3>
+            <p>
+            What is a <b>tight</b> theoretical lower bound for this problem, assuming that
+            the array is <b>unsorted</b>? State your answer in asymptotic notation as a function
+            of the number of elements in the array, <span class="math">\(n\)</span>.</p>
+<p>            </p>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(n)\)</span>
+                Since the array is in arbitrary order, we have to at least read all
+                of the elements, taking <span class="math">\(\Omega(n)\)</span> time. This is a tight lower bound,
+                because we can count the number of elements between <span class="math">\(a\)</span> and <span class="math">\(b\)</span> by
+                looping through and checking whether each element is in <span class="math">\([a, b]\)</span>
+                in linear time.
+            </p></details>
+        </div>
+<div class="subproblem">
+            <h3 class="subproblem-id">Part 2)</h3>
+            <p>
+            What is a <b>tight</b> theoretical lower bound for this problem, assuming that
+            the array is <b>sorted</b>? State your answer in asymptotic notation as a function
+            of the number of elements in the array, <span class="math">\(n\)</span>.</p>
+<p>            </p>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(\log n)\)</span>
+                We can do this in worst-case <span class="math">\(\Theta(\log n)\)</span> time with binary search:
+                find the index of <span class="math">\(a\)</span> in worst-case <span class="math">\(\Theta(\log n)\)</span> time;
+                find the index of <span class="math">\(b\)</span> in worst-case <span class="math">\(\Theta(\log n)\)</span> time;
+                and subtract the two indices (and add one) to get the total number
+                of elements between <span class="math">\(a\)</span> and <span class="math">\(b\)</span>, inclusive.</p>
+<p>                There cannot be an algorithm that is better than <span class="math">\(\Theta(\log n)\)</span>
+                in the worst case, so this is a tight lower bound. To see why, recognize
+                that we can solve the query problem (determine True/False if a target <span class="math">\(t\)</span>
+                is in a sorted array) with any algorithm that solves this problem by
+                setting <span class="math">\(a = b = t\)</span>. If an algorithm solves this problem in faster than
+                <span class="math">\(\Theta(\log n)\)</span>, it will also solve the query problem in faster than
+                <span class="math">\(\Theta(\log n)\)</span>, but we saw in class that the query problem has a theoretical
+                lower bound of <span class="math">\(\Theta(\log n)\)</span>, so such an algorithm cannot exist.
+            </p></details>
+        </div>
+            </div>
+        </div>
+<div class="problem">
+            <h2 class="problem-id">Problem 09</h2>
+            <div class="problem-body">
+                <p>
+    What is the <b>expected</b> time complexity of the function below?
+    State your answer using asymptotic notation.</p>
+<p>    You may assume that <span class="inline-code"><code>math.sqrt</code></span> and <span class="inline-code"><code>math.log</code></span> take <span class="math">\(\Theta(1)\)</span>
+    time. <span class="inline-code"><code>math.log</code></span> computes the natural log.</p>
+<p>    </p>
+<pre class="code"><code>import random
+import math
+
+def foo(n):
+    # draw a number uniformly at random from 0, 1, 2, ..., n-1 in Theta(1)
+    x = random.randrange(n)
+
+    if x < math.log(n):
+        for j in range(n**2):
+            print(j)
+    elif x < math.sqrt(n):
+        print('Ok!')
+    else:
+        for i in range(n):
+            print(i)
+
+foo(100)
+</code></pre>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(n \log n)\)</span>
+        There are three cases: Case 1) <span class="math">\(x < \log n\)</span>; Case 2) <span class="math">\(\log n \geq x <
+        \sqrt n\)</span>; and Case 3) <span class="math">\(x \geq \sqrt{n}\)</span>.</p>
+<p>        The probability of Case 1 is <span class="math">\(\log n / n\)</span>. The time taken in case 1 is
+        <span class="math">\(\Theta(n^2)\)</span>.</p>
+<p>        The probability of Case 2 is </p>
+<div class="math">\[
+            \frac{\sqrt n}{n} - \frac{\log n}{n} = \Theta(\sqrt n / n) = \Theta(1/\sqrt n).
+        \]</div>
+<p> The time taken in this case is <span class="math">\(\Theta(1)\)</span>.</p>
+<p>        The probability of Case 3 is 1 minus the probability of the sum of the
+        other two cases, which will simply be <span class="math">\(\Theta(1)\)</span>: </p>
+<div class="math">\[
+            1 - \Theta((\log n) / n) - \Theta(1 / \sqrt{n}) = \Theta(1)
+        \]</div>
+<p>
+        Therefore, the expected time is:
+        </p>
+<div class="math">\[\begin{aligned}
+            \frac{\log n}{n} \times \Theta(n^2)
+            + \Theta(1/\sqrt n) \times \Theta(1)
+            + \Theta(1) \times \Theta(n)
+            &=
+            \Theta(n \log n) + \Theta(1 / \sqrt n) + \Theta(n)
+            \\
+            &=
+            \Theta(n \log n)
+        \end{aligned}\]</div></details>
+            </div>
+        </div>
+<div class="problem">
+            <h2 class="problem-id">Problem 10</h2>
+            <div class="problem-body">
+                <p>
+    What is the <b>expected</b> time complexity of the following function?
+    State your answer using asymptotic notation.</p>
+<p>    </p>
+<pre class="code"><code>import random
+
+def foo(n):
+    x = random.randrange(n)
+
+    if x < 8:
+        for j in range(n**3):
+            print(j)
+    else:
+        for j in range(n):
+            print(j)
+
+foo(100)
+</code></pre>
+<details><summary>Solution</summary><p><span class="math">\(\Theta(n^2)\)</span></p></details>
+            </div>
+        </div>
+    </body>
+    </html>
