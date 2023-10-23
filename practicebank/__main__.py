@@ -58,7 +58,15 @@ def _read_problems(directory: pathlib.Path) -> list[types.InternalNode]:
 
     problem_dirs = (d for d in sorted(directory.iterdir()) if is_valid_directory(d))
 
-    return [_read_problem(d) for d in problem_dirs]
+    problems = []
+    for problem_dir in problem_dirs:
+        try:
+            problems.append(_read_problem(problem_dir))
+        except Exception as e:
+            print(f"Error reading problem {problem_dir}: {e}", file=sys.stderr)
+            raise
+
+    return problems
 
 
 def main():
