@@ -41,12 +41,12 @@ def _(node: types.ItalicText):
 
 @_renderer(types.Code)
 def _(node: types.Code):
-    return f'<pre class="code">{node.code}</pre>'
+    return f'<pre class="code"><code>{node.code}</code></pre>'
 
 
 @_renderer(types.InlineCode)
 def _(node: types.InlineCode):
-    return f'<span class="code">{node.code}</span>'
+    return f'<span class="inline-code"><code>{node.code}</code></span>'
 
 
 @_renderer(types.FillInTheBlank)
@@ -95,6 +95,14 @@ def _(node: types.Image):
     )
 
 
+def _render_choice(node: types.Choice, kind: str):
+    contents = "\n".join(_render_node(child) for child in node.children())
+    # return f'<div class="choice"><input type="{kind}" />{contents}</div>'
+    # place the checkbox/radio on the same line as the contents
+    return f'<div class="choice"><label><input name="choice" class="choice" type="{kind}" />{contents}</label></div>'
+
+
+
 @_renderer(types.MultipleChoices)
 def _(node: types.MultipleChoices):
     # radio buttons
@@ -112,11 +120,6 @@ def _(node: types.MultipleSelect):
 def _(node: types.Paragraph):
     contents = "".join(_render_node(child) for child in node.children())
     return f"<p>{contents}</p>"
-
-
-def _render_choice(node: types.Choice, kind: str):
-    contents = "\n".join(_render_node(child) for child in node.children())
-    return f'<div class="choice"><input type="{kind}" />{contents}</div>'
 
 
 def _render_node(node: _Node):

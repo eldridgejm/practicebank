@@ -66,6 +66,10 @@ def _(tex_node: TexSoup.data.TexNode, context: _Context):
 def _(node: TexSoup.data.TexCmd, _):
     return types.BoldText(node.string)
 
+@_cmd_parser("textit")
+def _(node: TexSoup.data.TexCmd, _):
+    return types.ItalicText(node.string)
+
 
 @_env_parser("$")
 def _(node: TexSoup.data.TexNode, _):
