@@ -16,9 +16,45 @@
         "type": "github"
       }
     },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1699291058,
+        "narHash": "sha256-5ggduoaAMPHUy4riL+OrlAZE14Kh7JWX4oLEs22ZqfU=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "41de143fda10e33be0f47eab2bfe08a50f234267",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-23.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "panprob": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1699845231,
+        "narHash": "sha256-6LaT2Sl5fzmyHwpbT5UPH3paL1juolI6x64/tOZzyAo=",
+        "owner": "eldridgejm",
+        "repo": "panprob",
+        "rev": "1c303375cee2203008e1d0769202e0c187ce1633",
+        "type": "github"
+      },
+      "original": {
+        "owner": "eldridgejm",
+        "ref": "main",
+        "repo": "panprob",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "panprob": "panprob"
       }
     }
   },
