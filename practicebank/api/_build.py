@@ -352,7 +352,9 @@ def _write_tag_page(
     with (output / f"tags/{tag}.html").open("w") as f:
         f.write(html)
 
+
 # build() ==============================================================================
+
 
 def build(
     input: pathlib.Path,

@@ -3,7 +3,7 @@
 
   inputs.nixpkgs.url = github:NixOS/nixpkgs/nixos-23.05;
 
-  inputs.panprob.url = github:eldridgejm/panprob/1b64851a91653d107c07bde011ed2c5a3628f186;
+  inputs.panprob.url = github:eldridgejm/panprob/0.1.2;
   inputs.panprob.inputs.nixpkgs.follows = "nixpkgs";
 
   inputs.dictconfig.url = github:eldridgejm/dictconfig/master;
