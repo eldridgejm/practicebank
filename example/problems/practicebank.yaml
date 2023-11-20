@@ -1,0 +1,16 @@
+sets:
+
+  midterm-01:
+    name: "Midterm 01"
+    description: Practice for Midterm 01.
+    tags:
+      - time-complexity
+      - asymptotic
+      - algorithm-design
+
+  midterm-02:
+    name: "Midterm 02"
+    description: Practice for Midterm 02.
+    tags:
+      - markdown
+      - example

@@ -1,28 +1,33 @@
 {
   "nodes": {
-    "nixpkgs": {
+    "dictconfig": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
       "locked": {
-        "lastModified": 1697777081,
-        "narHash": "sha256-n2vQARhKevRGyeo+LAa8g+CdUQsdH/caNk8jnylcPhY=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "679cadfdfed2b90311a247b2d6ef6dfd3d6cab73",
+        "lastModified": 1644187513,
+        "narHash": "sha256-1PrVTiClDV2vohxiAa3DRcmSFw7I9WCQn2ZsDiV5Om8=",
+        "owner": "eldridgejm",
+        "repo": "dictconfig",
+        "rev": "3db0e7edda59a162d64c9a7ac441e1c5bf848eda",
         "type": "github"
       },
       "original": {
-        "owner": "NixOS",
-        "ref": "nixos-23.05",
-        "repo": "nixpkgs",
+        "owner": "eldridgejm",
+        "ref": "master",
+        "repo": "dictconfig",
         "type": "github"
       }
     },
-    "nixpkgs_2": {
+    "nixpkgs": {
       "locked": {
-        "lastModified": 1699291058,
-        "narHash": "sha256-5ggduoaAMPHUy4riL+OrlAZE14Kh7JWX4oLEs22ZqfU=",
+        "lastModified": 1699994397,
+        "narHash": "sha256-xxNeIcMNMXH2EA9IAX6Cny+50mvY22LhIBiGZV363gc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "41de143fda10e33be0f47eab2bfe08a50f234267",
+        "rev": "d4b5a67bbe9ef750bd2fdffd4cad400dd5553af8",
         "type": "github"
       },
       "original": {
@@ -34,25 +39,28 @@
     },
     "panprob": {
       "inputs": {
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": [
+          "nixpkgs"
+        ]
       },
       "locked": {
-        "lastModified": 1699845231,
-        "narHash": "sha256-6LaT2Sl5fzmyHwpbT5UPH3paL1juolI6x64/tOZzyAo=",
+        "lastModified": 1700419448,
+        "narHash": "sha256-AHdXGxVKEgT09jzJgrUeRQdUoXN/bv7aH0QuEKM9Y4M=",
         "owner": "eldridgejm",
         "repo": "panprob",
-        "rev": "1c303375cee2203008e1d0769202e0c187ce1633",
+        "rev": "0c3a8d0dcc3c0ca583222a1f3b93398e5c9708bd",
         "type": "github"
       },
       "original": {
         "owner": "eldridgejm",
-        "ref": "main",
+        "ref": "0.1.0",
         "repo": "panprob",
         "type": "github"
       }
     },
     "root": {
       "inputs": {
+        "dictconfig": "dictconfig",
         "nixpkgs": "nixpkgs",
         "panprob": "panprob"
       }
