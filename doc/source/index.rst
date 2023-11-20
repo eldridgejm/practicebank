@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to practicebank's documentation!
-========================================
+practicebank
+============
 
 `practicebank` is a tool for building a website from a bank of practice
 problems. It is built on top of `panprob <https://eldridgejm.github.io/panprob/>`_.
