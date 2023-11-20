@@ -3,7 +3,8 @@ import shutil
 
 from .. import io
 
-def insert(path_to_pb: pathlib.Path, path_to_problem: pathlib.Path):
+
+def insert(path_to_pb: pathlib.Path, path_to_problem: pathlib.Path) -> str:
     """Inserts a problem into a practice bank.
 
     This finds the largest problem identifier in the practice bank and
@@ -22,6 +23,11 @@ def insert(path_to_pb: pathlib.Path, path_to_problem: pathlib.Path):
     path_to_problem : pathlib.Path
         The path to the problem to insert.
 
+    Returns
+    -------
+    str
+        The identifier of the inserted problem.
+
     """
 
     pb = io.load(path_to_pb)
@@ -32,8 +38,9 @@ def insert(path_to_pb: pathlib.Path, path_to_problem: pathlib.Path):
     # infer the amount of zero padding to use
     zero_padding = max(len(p.identifier) for p in pb.problems)
 
+    identifier = str(largest_problem_number + 1).zfill(zero_padding)
+
     # copy the problem into the practice bank
-    shutil.copytree(
-        path_to_problem,
-        path_to_pb / str(largest_problem_number + 1).zfill(zero_padding),
-    )
+    shutil.copytree(path_to_problem, path_to_pb / identifier)
+
+    return identifier

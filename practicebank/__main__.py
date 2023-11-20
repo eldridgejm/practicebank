@@ -136,7 +136,8 @@ def _setup_insert_parser(subparsers):
 def _insert(args):
     try:
         for new_problem_path in args.path_to_problems:
-            insert(args.path_to_pb, new_problem_path)
+            identifier = insert(args.path_to_pb, new_problem_path)
+            rich.print(f"[bold]Inserted new problem with identifier {identifier}[/bold]")
     except exceptions.Error as exc:
         rich.print(f"[bold red]Error:[/bold red] {exc}", file=sys.stderr)
         sys.exit(1)
@@ -162,7 +163,6 @@ def _setup_renumber_parser(subparsers):
 
 
 def _renumber(args):
-
     def callback(old, new):
         rich.print(f"[bold]Renumbering {old} -> {new}[/bold]")
 

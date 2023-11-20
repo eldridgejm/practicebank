@@ -4,7 +4,7 @@ import shutil
 import typing
 
 
-def renumber(path_to_pb: pathlib.Path, callback: typing.Callable[[str, str], None]):
+def renumber(path_to_pb: pathlib.Path, callback: typing.Optional[typing.Callable[[str, str], None]] = None):
     """Renumbers the problems in a practice bank so that they are contiguous.
 
     Ensures that all problem identifiers have the proper amount of zero padding
@@ -15,14 +15,9 @@ def renumber(path_to_pb: pathlib.Path, callback: typing.Callable[[str, str], Non
     ----------
     path_to_pb : pathlib.Path
         The path to the practice bank to renumber.
-    callback : Callable[[str, str], None]
+    callback : Callable[[str, str], None], optional
         A callback function that is called with the old and new identifiers
         after each problem is renumbered. Useful for logging.
-
-    Returns
-    -------
-    list[tuple[str, str]]
-        A list of tuples of the form ``(old_identifier, new_identifier)``.
 
     """
     pb = io.load(path_to_pb)
@@ -37,4 +32,5 @@ def renumber(path_to_pb: pathlib.Path, callback: typing.Callable[[str, str], Non
             shutil.move(
                 path_to_pb / problem.identifier, path_to_pb / new_identifier
             )
-            callback(problem.identifier, new_identifier)
+            if callback is not None:
+                callback(problem.identifier, new_identifier)
