@@ -20,4 +20,4 @@ class ProblemError(Error):
         self.message = message
 
     def __str__(self):
-        return f"Problem {self.identifier} is invalid: {self.message}"
+        return f"Problem {self.identifier} is invalid. {self.message}"

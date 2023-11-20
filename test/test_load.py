@@ -8,34 +8,9 @@ from pytest import fixture, raises
 import practicebank
 from practicebank import exceptions
 
+from util import Example
 
-class Example:
-    def __init__(self, root):
-        self.root = pathlib.Path(root)
-        self.root.mkdir()
-
-    def write_config(self, contents: dict):
-        with (self.root / "practicebank.yaml").open("w") as fileob:
-            yaml.dump(
-                contents,
-                fileob,
-            )
-
-    def write_problem(
-        self, identifier: str, format: str, contents: str, exist_ok=False
-    ):
-        (self.root / identifier).mkdir(exist_ok=exist_ok)
-
-        match format:
-            case "dsctex":
-                extension = ".tex"
-            case "gsmd":
-                extension = ".md"
-            case _:
-                raise ValueError(f"Unknown format: {format}")
-
-        with (self.root / identifier / f"problem{extension}").open("w") as fileob:
-            fileob.write(contents)
+# examples =============================================================================
 
 
 @fixture()
@@ -125,24 +100,31 @@ def example_1(tmpdir):
     return root
 
 
-def test_reads_configuration(example_1):
-    pb = practicebank.io.load(example_1)
+# tests ================================================================================
 
-    assert pb.config.description == "A totally-fine practicebank."
-    assert pb.config.tagsets["midterm01"].title == "Midterm 01"
-    assert pb.config.tagsets["midterm01"].description == "Practice for Midterm 01."
-    assert pb.config.tagsets["midterm01"].tags == {
-        "time complexity",
-        "asymptotic notation",
-        "recursion",
-    }
-
-    assert pb.config.tagsets["all"].tags == "__ALL__"
+# problems -----------------------------------------------------------------------------
 
 
 def test_tagsets_are_in_order_they_appear_in_config(example_1):
     pb = practicebank.io.load(example_1)
     assert list(pb.config.tagsets) == ["midterm01", "midterm02", "all"]
+
+
+def test_ignores_directories_starting_with_underscore(example_1):
+    (example_1 / "_ignore_me").mkdir()
+    pb = practicebank.io.load(example_1)
+    assert len(pb.problems) == 4
+
+
+def test_ignores_directories_starting_with_dot(example_1):
+    (example_1 / ".ignore_me").mkdir()
+    pb = practicebank.io.load(example_1)
+    assert len(pb.problems) == 4
+
+
+def test_problems_are_sorted_by_identifier(example_1):
+    pb = practicebank.io.load(example_1)
+    assert [p.identifier for p in pb.problems] == ["01", "02", "03", "04"]
 
 
 def test_loads_dsctex_problem_with_metadata(example_1):
@@ -229,24 +211,22 @@ def test_loads_gsmd_problem_without_metadata(example_1):
     )
 
 
-def test_raises_if_configuration_does_not_exist(tmpdir):
-    root = pathlib.Path(tmpdir / "example")
-    example = Example(root)
-
-    with raises(exceptions.ConfigError):
-        practicebank.io.load(root)
+# configuration ------------------------------------------------------------------------
 
 
-def test_raises_if_configuration_has_extra_keys(tmpdir):
-    root = pathlib.Path(tmpdir / "example")
-    example = Example(root)
+def test_reads_configuration(example_1):
+    pb = practicebank.io.load(example_1)
 
-    example.write_config(
-        {"foo": "unknown", "description": "A bad config.", "tagsets": ["one", "two"]}
-    )
+    assert pb.config.description == "A totally-fine practicebank."
+    assert pb.config.tagsets["midterm01"].title == "Midterm 01"
+    assert pb.config.tagsets["midterm01"].description == "Practice for Midterm 01."
+    assert pb.config.tagsets["midterm01"].tags == {
+        "time complexity",
+        "asymptotic notation",
+        "recursion",
+    }
 
-    with raises(exceptions.ConfigError):
-        practicebank.io.load(root)
+    assert pb.config.tagsets["all"].tags == "__ALL__"
 
 
 def test_configuration_without_description(tmpdir):
@@ -267,6 +247,29 @@ def test_configuration_without_tagsets(tmpdir):
 
     pb = practicebank.io.load(root)
     assert pb.config.tagsets == {}
+
+
+# error handling -----------------------------------------------------------------------
+
+
+def test_raises_if_configuration_does_not_exist(tmpdir):
+    root = pathlib.Path(tmpdir / "example")
+    example = Example(root)
+
+    with raises(exceptions.ConfigError):
+        practicebank.io.load(root)
+
+
+def test_raises_if_configuration_has_extra_keys(tmpdir):
+    root = pathlib.Path(tmpdir / "example")
+    example = Example(root)
+
+    example.write_config(
+        {"foo": "unknown", "description": "A bad config.", "tagsets": ["one", "two"]}
+    )
+
+    with raises(exceptions.ConfigError):
+        practicebank.io.load(root)
 
 
 def test_raises_if_configuration_contains_an_unknown_special_tagset(tmpdir):
@@ -360,6 +363,7 @@ def test_raises_if_gsmd_problem_metadata_contains_extra_keys(tmpdir):
 
     with raises(exceptions.ProblemError):
         practicebank.io.load(root)
+
 
 def test_raises_if_dsctex_problem_metadata_contains_extra_keys(tmpdir):
     root = pathlib.Path(tmpdir / "example")

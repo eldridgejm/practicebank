@@ -237,6 +237,7 @@ def _load_dsctex_problem(problem_directory: pathlib.Path) -> Problem:
     return Problem(
         identifier=problem_directory.name,
         contents=latex_source,
+        path=problem_directory,
         tags=set(metadata["tags"]),
         source=metadata["source"],
         format="dsctex",
@@ -304,6 +305,7 @@ def _load_gsmd_problem(problem_directory: pathlib.Path) -> Problem:
     return Problem(
         identifier=problem_directory.name,
         contents=markdown_source,
+        path=problem_directory,
         tags=set(metadata["tags"]),
         source=metadata["source"],
         format="gsmd",

@@ -11,6 +11,7 @@ class Problem(typing.NamedTuple):
     format: str
     tags: typing.Set[str]
     identifier: str
+    path: pathlib.Path
     source: typing.Optional[str] = None
 
 

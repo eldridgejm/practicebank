@@ -7,7 +7,7 @@
     You may assume that \mintinline{python}{math.sqrt} and \mintinline{python}{math.log} take $\Theta(1)$
     time. \mintinline{python}{math.log} computes the natural log.
 
-    \inputminted{python}{\thisdir/code.py}
+    \inputminted{python}{./code.py}
 
     \begin{soln}
         $\Theta(n \log n)$
@@ -28,16 +28,16 @@
         \]
 
         Therefore, the expected time is:
-        \begin{align}
+        \[
             \frac{\log n}{n} \times \Theta(n^2)
             + \Theta(1/\sqrt n) \times \Theta(1)
             + \Theta(1) \times \Theta(n)
-            &=
+            =
             \Theta(n \log n) + \Theta(1 / \sqrt n) + \Theta(n)
             \\
-            &=
+            =
             \Theta(n \log n)
-        \end{align}
+        \]
     \end{soln}
 
 \end{prob}
