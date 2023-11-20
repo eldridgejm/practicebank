@@ -329,6 +329,25 @@ def test_raises_if_there_are_multiple_problem_formats_in_the_same_problem_direct
         practicebank.io.load(root)
 
 
+def test_raises_if_a_problem_directory_name_is_not_a_number(example_1):
+    (example_1 / "foo").mkdir()
+    with (example_1 / "foo" / "problem.md").open("w") as f:
+        f.write("This is a problem.")
+
+    with raises(exceptions.ProblemError):
+        practicebank.io.load(example_1)
+
+
+def test_raises_if_there_are_multiple_problems_with_the_same_number(example_1):
+    (example_1 / "001").mkdir()
+    with (example_1 / "001" / "problem.md").open("w") as f:
+        f.write("This is a problem.")
+
+    with raises(exceptions.ProblemError):
+        practicebank.io.load(example_1)
+
+
+
 def test_raises_if_problem_directory_is_missing_a_problem(tmpdir):
     root = pathlib.Path(tmpdir / "example")
     example = Example(root)
