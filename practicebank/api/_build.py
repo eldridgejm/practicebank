@@ -4,8 +4,8 @@ import pathlib
 import typing
 from textwrap import dedent, indent
 
-from . import io, exceptions
-from .types import PracticeBank, TagSet, Problem
+from .. import io, exceptions
+from ..types import PracticeBank, TagSet, Problem
 
 import panprob
 

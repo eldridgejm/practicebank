@@ -1,9 +1,10 @@
 """Load a bank of practice problems."""
 
-import pathlib
-import yaml
+import collections
 import itertools
+import pathlib
 import typing
+import yaml
 
 import dictconfig
 
@@ -385,6 +386,13 @@ def _load_problems(
         if path.name.startswith(".") or path.name.startswith("_"):
             continue
 
+        # raise if the directory name is not a number
+        if not path.name.isnumeric():
+            raise ProblemError(
+                path.name,
+                f"Name of problem in directory {path} is not a number.",
+            )
+
         try:
             yield _load_problem(path)
         except ProblemError as exc:
@@ -395,6 +403,19 @@ def _load_problems(
 
 
 # load() ===============================================================================
+
+
+def _check_for_duplicate_identifiers(problems: typing.List[Problem]):
+    """Check for duplicate problem identifiers."""
+    identifiers = set()
+    for problem in problems:
+        if int(problem.identifier) in identifiers:
+            raise ProblemError(
+                problem.identifier,
+                f"Duplicate problem identifier {problem.identifier} in {problem.path}.",
+            )
+        else:
+            identifiers.add(int(problem.identifier))
 
 
 def load(root: pathlib.Path, raise_on_error=True) -> PracticeBank:
@@ -416,12 +437,16 @@ def load(root: pathlib.Path, raise_on_error=True) -> PracticeBank:
         The loaded practice bank.
 
     """
+    config = _load_config(root / "practicebank.yaml")
+
     all_problems = list(_load_problems(root, raise_on_error=raise_on_error))
     good_problems = [p for p in all_problems if isinstance(p, Problem)]
     bad_problems = [p for p in all_problems if isinstance(p, ProblemError)]
 
+    _check_for_duplicate_identifiers(good_problems)
+
     return PracticeBank(
-        config=_load_config(root / "practicebank.yaml"),
+        config=config,
         problems=good_problems,
         invalid_problems=bad_problems,
         root=root,
