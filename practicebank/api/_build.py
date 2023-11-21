@@ -1,5 +1,6 @@
 """Builds a practice bank into a static website."""
 
+import copy
 import pathlib
 import typing
 from textwrap import dedent, indent
@@ -64,6 +65,17 @@ def _all_tags(pb: PracticeBank) -> list[str]:
     for problem in pb.problems:
         tags.update(problem.tags)
     return sorted(tags)
+
+
+# AST posprocessors ====================================================================
+
+# these do some post-processing of a problem's AST before it is rendered
+
+
+def _add_solution_to_true_false(node: panprob.ast.Node):
+    """This adds a solution to a true/false problem if it doesn't already have one."""
+
+    return node
 
 
 # renderers ============================================================================
@@ -160,6 +172,7 @@ def _render_problem(
         }[problem.format]
 
         tree = parser(problem.contents)
+        tree = _add_solution_to_true_false(tree)
         tree = panprob.postprocessors.subsume_code(tree, problem.path)
         tree = panprob.postprocessors.copy_images(
             tree,
@@ -177,7 +190,7 @@ def _render_problem(
     return dedent(
         f"""
 
-        <div class="problem">
+        <div class="problem-outer">
         <h2>Problem #{problem.identifier}</h2>
         <p>Tags: {_render_inline_tag_link_list(problem.tags, relative_path_to_root)}</p>
         {html}
