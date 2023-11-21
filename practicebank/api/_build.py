@@ -101,6 +101,7 @@ def _render_vertical_tag_link_list(tags: list[str], relative_path_to_root=".") -
         The rendered HTML, including the outer <ul> and </ul> tags.
 
     """
+    tags = sorted(tags)
     return (
         "<ul>\n"
         + "\n".join(
