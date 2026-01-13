@@ -31,6 +31,8 @@
               dictconfig.defaultPackage.${system}
             ];
             nativeBuildInputs = with python3Packages; [pytest sphinx sphinx_rtd_theme pip];
+            pyproject = true;
+            build-system = [ python3Packages.setuptools ];
             doCheck = true;
           }
     );
