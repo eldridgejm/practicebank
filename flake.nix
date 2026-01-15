@@ -37,11 +37,22 @@
           }
     );
 
-    # Export the application form as defaultPackage (no PYTHONPATH pollution)
+    # Export a truly isolated application (only bin/, no propagatedBuildInputs)
+    # This prevents PYTHONPATH pollution when used in mkShell buildInputs
     defaultPackage = forAllSystems (
       system:
-        with import nixpkgs {system = "${system}";};
-        python3Packages.toPythonApplication self.practicebank.${system}
+        let
+          pkgs = import nixpkgs {system = "${system}";};
+          app = pkgs.python3Packages.toPythonApplication self.practicebank.${system};
+        in
+          pkgs.runCommand "practicebank" {
+            meta = app.meta or {};
+          } ''
+            mkdir -p $out/bin
+            for f in ${app}/bin/*; do
+              ln -s "$f" $out/bin/
+            done
+          ''
     );
 
     # Export the library form for consumers who need it as a Python dependency
