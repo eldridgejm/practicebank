@@ -37,7 +37,15 @@
           }
     );
 
+    # Export the application form as defaultPackage (no PYTHONPATH pollution)
     defaultPackage = forAllSystems (
+      system:
+        with import nixpkgs {system = "${system}";};
+        python3Packages.toPythonApplication self.practicebank.${system}
+    );
+
+    # Export the library form for consumers who need it as a Python dependency
+    lib = forAllSystems (
       system:
         self.practicebank.${system}
     );
