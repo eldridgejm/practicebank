@@ -3,7 +3,7 @@
 
   inputs.nixpkgs.url = github:NixOS/nixpkgs/nixos-23.05;
 
-  inputs.panprob.url = github:eldridgejm/panprob/0.1.4;
+  inputs.panprob.url = github:eldridgejm/panprob/0.1.5;
   inputs.panprob.inputs.nixpkgs.follows = "nixpkgs";
 
   inputs.dictconfig.url = github:eldridgejm/dictconfig/master;
@@ -30,7 +30,7 @@
               panprob.defaultPackage.${system}
               dictconfig.defaultPackage.${system}
             ];
-            nativeBuildInputs = with python3Packages; [pytest sphinx sphinx_rtd_theme pip];
+            nativeBuildInputs = (with python3Packages; [pytest sphinx pip]) ++ [(python3Packages.sphinx-rtd-theme or python3Packages.sphinx_rtd_theme)];
             pyproject = true;
             build-system = [ python3Packages.setuptools ];
             doCheck = true;

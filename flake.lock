@@ -7,11 +7,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1644187513,
-        "narHash": "sha256-1PrVTiClDV2vohxiAa3DRcmSFw7I9WCQn2ZsDiV5Om8=",
+        "lastModified": 1790099271,
+        "narHash": "sha256-Q2iGgQxuGpJIsO4AVkUzhIp70uoFN+IpfKoFl9xGWI8=",
         "owner": "eldridgejm",
         "repo": "dictconfig",
-        "rev": "3db0e7edda59a162d64c9a7ac441e1c5bf848eda",
+        "rev": "bc0de1315d1c0a233e0daeca5c178b07317d38c5",
         "type": "github"
       },
       "original": {
@@ -44,16 +44,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1700548114,
-        "narHash": "sha256-BXC6MXPvSLwAn/cILDgLJ1Y6ROTt7K9ghE/nU+UWI6Y=",
+        "lastModified": 1790099271,
+        "narHash": "sha256-jsI0YGxYs82Jf9ADAvDKgHRTn8RrUzO0qnAOSQpMujk=",
         "owner": "eldridgejm",
         "repo": "panprob",
-        "rev": "6fa762146da4cc89b2a227f73ac2987806071183",
+        "rev": "e7b2a451f6c3bf994ea68a800df906b1b4f64c05",
         "type": "github"
       },
       "original": {
         "owner": "eldridgejm",
-        "ref": "0.1.4",
+        "ref": "0.1.5",
         "repo": "panprob",
         "type": "github"
       }
