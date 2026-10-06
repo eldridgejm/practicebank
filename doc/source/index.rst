@@ -28,6 +28,31 @@ Python format string containing the following fields:
 - :code:`{relative_path_to_root}`: The relative path to the root of the website.
 - :code:`{body}`: The content of the page.
 
+Embedding in another site
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, each page is a standalone HTML document that loads MathJax and
+highlight.js itself. To embed the pages in a site that wraps them in its own
+theme, pass :code:`--fragment` instead of :code:`--template`:
+
+.. code:: bash
+
+   practicebank build <path_to_practice_bank> <output_directory> --fragment
+
+Each page is then written as an HTML fragment without :code:`<html>`,
+:code:`<head>` or :code:`<body>`, and without loading MathJax or highlight.js.
+The host site should provide both. The output is designed to work with their
+default configurations:
+
+- Inline math is delimited by :code:`\(...\)` and display math by
+  :code:`\[...\]`.
+- Code blocks are written as :code:`<pre class="code"><code
+  class="language-python">...</code></pre>`, with the problem's language.
+
+Pages that contain problems include a small :code:`<style>` block, scoped to
+practicebank's classes, that places each multiple-choice option on the same
+line as its radio button or checkbox.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:

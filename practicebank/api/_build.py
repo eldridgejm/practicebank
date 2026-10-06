@@ -1,7 +1,9 @@
 """Builds a practice bank into a static website."""
 
 import copy
+import html
 import pathlib
+import re
 import typing
 from textwrap import dedent, indent
 
@@ -18,21 +20,12 @@ import panprob
 # {relative_path_to_root}, which is the relative path from the current page to
 # the root of the website. This is useful for linking to assets like CSS files.
 _DEFAULT_TEMPLATE = dedent(
-    r""" <!DOCTYPE html> <html> <head> <meta
-                           charset="utf-8"> <title>{title}</title>
-
-            <!-- MathJax -->
-            <script type="text/x-mathjax-config">
-              MathJax.Hub.Config({{
-                tex: {{
-                  inlineMath: [ ['$$','$$'], ["\\(","\\)"] ],
-                  displayMath: [             // start/end delimiter pairs for display math
-                      ['\\[', '\\]']
-                  ],
-                  processEscapes: true
-                }}
-            }});
-            </script>
+    r"""
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+            <title>{title}</title>
 
             <!-- highlightjs -->
             <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
@@ -43,16 +36,32 @@ _DEFAULT_TEMPLATE = dedent(
 
             <script>hljs.highlightAll();</script>
 
-            <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+            <!-- MathJax; problems use its default delimiters, \(...\) and \[...\] -->
             <script type="text/javascript" id="MathJax-script" async
               src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
             </script>
-
         </head>
         <body>
             {body}
         </body>
     </html>
+    """
+).strip()
+
+# the template used when building fragments that a host site wraps in its own page.
+# The host is expected to provide MathJax and syntax highlighting.
+_FRAGMENT_TEMPLATE = "{body}"
+
+# styles for practicebank's own markup. These are included in every page, so they
+# apply whether the page is standalone or embedded in a host site.
+_STYLES = dedent(
+    """
+    <style>
+    .multiple-choices .choice label, .multiple-select .choice label {
+        display: flex; align-items: center; gap: 0.6em; margin: 0.25em 0; cursor: pointer;
+    }
+    .multiple-choices .choice p, .multiple-select .choice p { margin: 0; }
+    </style>
     """
 ).strip()
 
@@ -76,6 +85,44 @@ def _add_solution_to_true_false(node: panprob.ast.Node):
     """This adds a solution to a true/false problem if it doesn't already have one."""
 
     return node
+
+
+# node renderers =======================================================================
+
+# these override panprob's default HTML renderers for specific AST node types
+
+
+def _render_code_node(node: panprob.ast.Code, render_child) -> str:
+    """Renders a code block in the conventional form expected by syntax highlighters.
+
+    The language is given by a ``language-*`` class on the ``<code>`` element, and
+    blank lines at the start and end of the code are removed.
+
+    """
+    code = re.sub(r"^\s*\n", "", node.code).rstrip()
+    code = html.escape(code, quote=False)
+    if node.language:
+        code_class = f' class="language-{html.escape(node.language)}"'
+    else:
+        code_class = ""
+    return f'<pre class="code"><code{code_class}>{code}</code></pre>'
+
+
+def _render_align_math_node(node: panprob.ast.AlignMath, render_child) -> str:
+    """Renders an align environment as display math delimited by \\[...\\].
+
+    panprob delimits it with $$...$$, but \\[...\\] is display math under MathJax's
+    default configuration, so the output doesn't depend on a custom MathJax config.
+
+    """
+    env = "align*" if node.starred else "align"
+    return f'<div class="math">\\[\\begin{{{env}}}{node.latex}\\end{{{env}}}\\]</div>'
+
+
+_NODE_RENDERER_OVERRIDES = {
+    panprob.ast.Code: _render_code_node,
+    panprob.ast.AlignMath: _render_align_math_node,
+}
 
 
 # renderers ============================================================================
@@ -181,7 +228,9 @@ def _render_problem(
             output / "images" / problem.identifier,
             transform_path=transform_path,
         )
-        return panprob.renderers.html.render(tree)
+        return panprob.renderers.html.render(
+            tree, overrides=_NODE_RENDERER_OVERRIDES
+        )
 
     try:
         html = _render_with_panprob()
@@ -299,6 +348,7 @@ def _write_tagset_page(
 
     body = dedent(
         f"""
+        {{styles}}
         <h1>{tagset.title}</h1>
         <p>{tagset.description}</p>
         <p>Tags in this problem set:</p>
@@ -309,6 +359,7 @@ def _write_tagset_page(
         {{problems_html}}
         """
     ).format(
+        styles=_STYLES,
         tags_html=_render_vertical_tag_link_list(tags),
         problems_html="\n".join(
             _render_problem(problem, output)
@@ -348,10 +399,12 @@ def _write_tag_page(
 
     body = dedent(
         f"""
+        {{styles}}
         <h1>Problems tagged with "{tag}"</h1>
         {{problems_html}}
         """
     ).format(
+        styles=_STYLES,
         problems_html="\n".join(
             _render_problem(problem, output, relative_path_to_root="..")
             for problem in pb.problems
@@ -374,6 +427,7 @@ def build(
     input: pathlib.Path,
     output: pathlib.Path,
     template: typing.Optional[str] = None,
+    fragment: bool = False,
 ):
     """Builds a website of practice problems.
 
@@ -393,8 +447,19 @@ def build(
         - ``{relative_path_to_root}``: The relative path from the page to the output
             directory root.
 
+    fragment : bool, optional
+        If True, each page is written as an HTML fragment meant to be wrapped by a
+        host site: there is no ``<html>``, ``<head>`` or ``<body>``, and MathJax and
+        highlight.js are not loaded, since the host is expected to provide them.
+        Cannot be used together with ``template``. Default: False.
+
     """
-    if template is None:
+    if fragment and template is not None:
+        raise ValueError("Cannot provide a template when building fragments.")
+
+    if fragment:
+        template = _FRAGMENT_TEMPLATE
+    elif template is None:
         template = _DEFAULT_TEMPLATE
 
     output.mkdir(parents=True, exist_ok=True)

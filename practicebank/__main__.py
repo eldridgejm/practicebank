@@ -27,10 +27,19 @@ def _setup_build_parser(subparsers):
         type=pathlib.Path,
         help="The directory to which the practicebank website will be written.",
     )
-    subparser.add_argument(
+    template_group = subparser.add_mutually_exclusive_group()
+    template_group.add_argument(
         "--template",
         type=pathlib.Path,
         help="A template file to use for rendering the website.",
+    )
+    template_group.add_argument(
+        "--fragment",
+        action="store_true",
+        help=(
+            "Write each page as an HTML fragment for a host site to wrap, without "
+            "<html>, <head>, or <body>, and without loading MathJax or highlight.js."
+        ),
     )
 
     subparser.set_defaults(command=_build)
@@ -45,7 +54,7 @@ def _build(args):
 
     try:
         rich.print("[bold]Building practicebank website...[/bold]")
-        build(args.input, args.output, template=template)
+        build(args.input, args.output, template=template, fragment=args.fragment)
         rich.print("[bold green]Done![/bold green]")
     except exceptions.Error as exc:
         rich.print(f"[bold red]Error:[/bold red] {exc}")
