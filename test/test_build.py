@@ -195,3 +195,30 @@ def test_math_uses_default_mathjax_delimiters(tmpdir):
     assert r"\[ y^2 \]" in html or r"\[y^2\]" in html
     assert r"\[\begin{align*}" in html
     assert "$" not in html
+
+
+def test_minted_language_is_read_when_options_are_given(tmpdir):
+    root = pathlib.Path(tmpdir) / "example"
+    example = Example(root)
+    example.write_config({"tagsets": []})
+    example.write_problem(
+        "01",
+        "dsctex",
+        dedent(
+            r"""
+            %% tags: [code]
+
+            \begin{prob}
+                \begin{minted}[autogobble]{python}
+                    print(1)
+                \end{minted}
+            \end{prob}
+            """
+        ).strip(),
+    )
+
+    out = pathlib.Path(tmpdir / "out")
+    build(root, out, fragment=True)
+
+    html = (out / "tags" / "code.html").read_text()
+    assert '<code class="language-python">print(1)</code>' in html

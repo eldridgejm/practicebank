@@ -1,6 +1,7 @@
 """Builds a practice bank into a static website."""
 
 import copy
+import functools
 import html
 import pathlib
 import re
@@ -85,6 +86,29 @@ def _add_solution_to_true_false(node: panprob.ast.Node):
     """This adds a solution to a true/false problem if it doesn't already have one."""
 
     return node
+
+
+# parser overrides =====================================================================
+
+# these override panprob's default DSCTeX converters for specific LaTeX environments
+
+
+def _convert_minted(env, convert) -> panprob.ast.Code:
+    """Converts a minted environment, which may have options before its language.
+
+    panprob reads the language from the first argument, so in
+    ``\\begin{minted}[autogobble]{python}`` it takes "autogobble" as the language. The
+    language is the last argument.
+
+    """
+    return panprob.ast.Code(
+        language=env.args[-1].raw_contents, code=dedent(env.raw_contents)
+    )
+
+
+_DSCTEX_ENVIRONMENT_CONVERTERS = {
+    "minted": _convert_minted,
+}
 
 
 # node renderers =======================================================================
@@ -216,7 +240,10 @@ def _render_problem(
     def _render_with_panprob():
         parser = {
             "gsmd": panprob.parsers.gsmd.parse,
-            "dsctex": panprob.parsers.dsctex.parse,
+            "dsctex": functools.partial(
+                panprob.parsers.dsctex.parse,
+                environment_converters=_DSCTEX_ENVIRONMENT_CONVERTERS,
+            ),
         }[problem.format]
 
         tree = parser(problem.contents)
