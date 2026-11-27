@@ -71,21 +71,37 @@ _STYLES = dedent(
 
 # badge filter ========================================================================
 
-# the toggle at the top of every page that lists problems, shown when badges are
-# configured. It has one button for all problems and one per badge. The choice is
+# the switch at the top of every page that lists problems, shown when badges are
+# configured: one per badge, off for all problems and on for only that badge's
+# problems (at most one is on at a time). The choice is
 # kept in localStorage, so it carries over to the other pages, and ?only=<tag> in
 # the URL sets it when the page loads. The toggle starts out hidden and the script
 # reveals it, so without JavaScript the page shows every problem and no toggle.
 _FILTER_STYLES = dedent(
     """
     <style>
-    .practicebank-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4em; margin: 1em 0; }
+    .practicebank-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em 1.5em; margin: 1em 0; }
     .practicebank-filter[hidden] { display: none; }
-    .practicebank-filter button {
-        font: inherit; padding: 0.2em 0.8em; border: 1px solid #888; border-radius: 1em;
-        background: transparent; color: inherit; cursor: pointer;
+    .practicebank-filter button[role="switch"] {
+        display: inline-flex; align-items: center; gap: 0.6em; padding: 0.2em 0.3em;
+        border: 0; border-radius: 0.4em; background: none; color: inherit; font: inherit;
+        cursor: pointer;
     }
-    .practicebank-filter button[aria-pressed="true"] { background: #888; color: #fff; }
+    .practicebank-filter button[role="switch"]:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+    .practicebank-switch {
+        position: relative; flex: none; width: 2.4em; height: 1.4em; border-radius: 0.7em;
+        background: #9ca3af; transition: background-color 0.2s ease;
+    }
+    .practicebank-switch::after {
+        content: ""; position: absolute; top: 0.2em; left: 0.2em;
+        width: 1em; height: 1em; border-radius: 50%; background: #fff;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease;
+    }
+    button[aria-checked="true"] > .practicebank-switch { background: #dc2626; }
+    button[aria-checked="true"] > .practicebank-switch::after { transform: translateX(1em); }
+    @media (prefers-reduced-motion: reduce) {
+        .practicebank-switch, .practicebank-switch::after { transition: none; }
+    }
     .practicebank-badge { cursor: help; }
     .practicebank-problems .problem-outer.practicebank-filtered-out,
     .practicebank-empty[hidden] { display: none !important; }
@@ -119,7 +135,7 @@ _FILTER_SCRIPT = dedent(
             filters.forEach(function (f) {
                 f.hidden = false;
                 f.querySelectorAll("button[data-only]").forEach(function (b) {
-                    b.setAttribute("aria-pressed", String(b.dataset.only === tag));
+                    b.setAttribute("aria-checked", String(b.dataset.only === tag));
                 });
             });
             lists.forEach(function (list) {
@@ -145,7 +161,9 @@ _FILTER_SCRIPT = dedent(
             f.addEventListener("click", function (event) {
                 var b = event.target.closest("button[data-only]");
                 if (!b) { return; }
-                var tag = valid(b.dataset.only);
+                // a switch that is on turns the filter off; one that is off turns it on
+                var on = b.getAttribute("aria-checked") === "true";
+                var tag = on ? "" : valid(b.dataset.only);
                 save(tag);
                 apply(tag);
             });
@@ -170,20 +188,22 @@ _FILTER_SCRIPT = dedent(
 
 
 def _render_filter(badges: typing.Sequence[Badge]) -> str:
-    """Renders the "All | 🌶️ only" toggle, or nothing if there are no badges."""
+    """Renders a "🌶️ only" switch per badge, or nothing if there are no badges."""
     if not badges:
         return ""
-    buttons = ['<button type="button" data-only="" aria-pressed="true">All</button>']
+    switches = []
     for badge in badges:
-        label = html.escape(badge.title or badge.tag)
-        buttons.append(
-            f'<button type="button" data-only="{html.escape(badge.tag)}" '
-            f'aria-pressed="false" title="{label}">'
-            f"{html.escape(badge.symbol)} only</button>"
+        title = html.escape(badge.title or badge.tag)
+        switches.append(
+            f'<button type="button" role="switch" aria-checked="false" '
+            f'data-only="{html.escape(badge.tag)}" title="{title}">'
+            '<span class="practicebank-switch" aria-hidden="true"></span>'
+            f'<span class="practicebank-switch-label">{html.escape(badge.symbol)} only</span>'
+            "</button>"
         )
     return (
         '<div class="practicebank-filter" role="group" aria-label="Filter problems" hidden>\n'
-        + "\n".join(buttons)
+        + "\n".join(switches)
         + "\n</div>"
     )
 

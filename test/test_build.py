@@ -358,7 +358,11 @@ def test_filter_is_on_problem_pages_when_badges_are_configured(badged, tmpdir):
             html = page.read_text()
             assert '<div class="practicebank-filter"' in html
             assert 'data-only="hard"' in html
-            assert "🌶️ only</button>" in html
+            assert 'role="switch" aria-checked="false" data-only="hard"' in html
+            assert '<span class="practicebank-switch" aria-hidden="true"></span>' in html
+            assert "🌶️ only</span></button>" in html
+            # one switch per badge, and no separate "All" button
+            assert html.count("<button") == 1
             assert "practicebank-only" in html  # the script's localStorage key
             assert '<p class="practicebank-empty" data-only="hard" hidden>' in html
 

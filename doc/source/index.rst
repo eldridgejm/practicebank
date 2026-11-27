@@ -162,9 +162,12 @@ appears wherever its other tags put it. Its problem's
 listing its badges' tags.
 
 When badges are configured, each page that lists problems (tagset pages and
-tag pages, standalone or :code:`--fragment`) has a toggle at the top, "All |
-🌶️ only", with a button for each badge. It's plain inline JavaScript and CSS,
-included in the page itself:
+tag pages, standalone or :code:`--fragment`) has a switch at the top for each
+badge, labelled with its symbol, as in "🌶️ only". Off, the page shows every
+problem; on, only the problems with that badge (turning one switch on turns
+the others off). Each switch is a :code:`<button role="switch">`, so it works
+from the keyboard and with screen readers. It's plain inline JavaScript and
+CSS, included in the page itself:
 
 - The choice is kept in the browser's :code:`localStorage`, so it carries over
   to the other pages.
