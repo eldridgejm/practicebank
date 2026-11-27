@@ -406,3 +406,64 @@ def test_raises_if_dsctex_problem_metadata_contains_extra_keys(tmpdir):
 
     with raises(exceptions.ProblemError):
         practicebank.io.load(root)
+
+
+# badges -------------------------------------------------------------------------------
+
+
+def test_configuration_without_badges_has_no_badges(tmpdir):
+    root = pathlib.Path(tmpdir / "example")
+    example = Example(root)
+
+    example.write_config({"tagsets": []})
+
+    pb = practicebank.io.load(root)
+    assert tuple(pb.config.badges) == ()
+
+
+def test_reads_badges(tmpdir):
+    root = pathlib.Path(tmpdir / "example")
+    example = Example(root)
+
+    example.write_config(
+        {
+            "tagsets": [],
+            "badges": [
+                {"tag": "hard", "symbol": "🌶️", "title": "One of the hardest"},
+                {"tag": "new", "symbol": "★"},
+            ],
+        }
+    )
+
+    pb = practicebank.io.load(root)
+    hard, new = pb.config.badges
+    assert (hard.tag, hard.symbol, hard.title) == ("hard", "🌶️", "One of the hardest")
+    assert (new.tag, new.symbol, new.title) == ("new", "★", None)
+
+
+def test_raises_if_badge_is_missing_its_symbol(tmpdir):
+    root = pathlib.Path(tmpdir / "example")
+    example = Example(root)
+
+    example.write_config({"tagsets": [], "badges": [{"tag": "hard"}]})
+
+    with raises(exceptions.ConfigError):
+        practicebank.io.load(root)
+
+
+def test_raises_if_a_tag_is_configured_as_two_badges(tmpdir):
+    root = pathlib.Path(tmpdir / "example")
+    example = Example(root)
+
+    example.write_config(
+        {
+            "tagsets": [],
+            "badges": [
+                {"tag": "hard", "symbol": "🌶️"},
+                {"tag": "hard", "symbol": "!"},
+            ],
+        }
+    )
+
+    with raises(exceptions.ConfigError):
+        practicebank.io.load(root)

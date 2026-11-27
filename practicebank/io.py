@@ -8,7 +8,7 @@ import yaml
 
 import dictconfig
 
-from .types import PracticeBank, Config, TagSet, Problem
+from .types import PracticeBank, Config, TagSet, Problem, Badge
 from .exceptions import Error, ConfigError, ProblemError
 
 
@@ -115,6 +115,20 @@ def _load_config(path: pathlib.Path) -> Config:
                 "default": {},
                 "element_schema": {"type": "any"},
             },
+            "badges": {
+                "type": "list",
+                "default": [],
+                "element_schema": {
+                    "type": "dict",
+                    "required_keys": {
+                        "tag": {"type": "string"},
+                        "symbol": {"type": "string"},
+                    },
+                    "optional_keys": {
+                        "title": {"type": "string", "nullable": True, "default": None},
+                    },
+                },
+            },
         },
     }
 
@@ -134,9 +148,22 @@ def _load_config(path: pathlib.Path) -> Config:
     except ConfigError as exc:
         raise ConfigError(path, str(exc.message))
 
+    badges = tuple(
+        Badge(tag=b["tag"], symbol=b["symbol"], title=b["title"])
+        for b in config["badges"]
+    )
+
+    badge_tags = [b.tag for b in badges]
+    duplicates = {t for t in badge_tags if badge_tags.count(t) > 1}
+    if duplicates:
+        raise ConfigError(
+            path, f"Tag(s) {', '.join(sorted(duplicates))} configured as more than one badge."
+        )
+
     return Config(
         description=config["description"],
         tagsets=tagsets,
+        badges=badges,
     )
 
 

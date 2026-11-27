@@ -222,3 +222,146 @@ def test_minted_language_is_read_when_options_are_given(tmpdir):
 
     html = (out / "tags" / "code.html").read_text()
     assert '<code class="language-python">print(1)</code>' in html
+
+
+# badges -------------------------------------------------------------------------------
+
+
+@fixture()
+def badged(tmpdir):
+    """A practicebank where "hard" is a badge."""
+    root = pathlib.Path(tmpdir) / "badged"
+    example = Example(root)
+
+    example.write_config(
+        {
+            "tagsets": [
+                {
+                    "identifier": "quiz-01",
+                    "title": "Quiz 01",
+                    "description": "Quiz 01.",
+                    "tags": ["recursion", "hard"],
+                },
+                {
+                    "identifier": "all",
+                    "title": "All",
+                    "description": "All.",
+                    "tags": "__ALL__",
+                },
+            ],
+            "badges": [
+                {"tag": "hard", "symbol": "🌶️", "title": "One of the hardest problems"}
+            ],
+        }
+    )
+
+    # hard, with another tag
+    example.write_problem("01", "gsmd", "---\ntags: [recursion, hard]\n---\nOne.")
+    # not hard
+    example.write_problem("02", "gsmd", "---\ntags: [recursion]\n---\nTwo.")
+    # hard, and no other tags
+    example.write_problem("03", "gsmd", "---\ntags: [hard]\n---\nThree.")
+    # not hard, in another topic
+    example.write_problem("04", "gsmd", "---\ntags: [graphs]\n---\nFour.")
+
+    return root
+
+
+def _problem_html(page: str, identifier: str) -> str:
+    """The HTML of one problem on a page, from its opening div to the next one."""
+    start = page.index(f"Problem #{identifier}")
+    start = page.rindex('<div class="problem-outer"', 0, start)
+    end = page.find('<div class="problem-outer"', start + 1)
+    return page[start:] if end == -1 else page[start:end]
+
+
+def test_badge_tag_has_no_tag_page(badged, tmpdir):
+    out = pathlib.Path(tmpdir / "out")
+    build(badged, out)
+
+    assert not (out / "tags" / "hard.html").exists()
+    assert (out / "tags" / "recursion.html").exists()
+
+
+def test_badge_tag_is_not_listed_on_index_or_tagset_pages(badged, tmpdir):
+    out = pathlib.Path(tmpdir / "out")
+    build(badged, out)
+
+    for page in ["index.html", "quiz-01.html", "all.html"]:
+        assert "tags/hard.html" not in (out / page).read_text()
+
+
+def test_badge_tag_is_not_in_problem_tags_line(badged, tmpdir):
+    out = pathlib.Path(tmpdir / "out")
+    build(badged, out)
+
+    page = (out / "all.html").read_text()
+    one = _problem_html(page, "01")
+    assert "Tags: <a href='./tags/recursion.html'>recursion</a></p>" in one
+    assert ">hard<" not in one
+
+    # a problem whose only tag is a badge has no "Tags:" line at all
+    assert "Tags:" not in _problem_html(page, "03")
+
+
+def test_badge_symbol_follows_problem_number(badged, tmpdir):
+    out = pathlib.Path(tmpdir / "out")
+    build(badged, out)
+
+    page = (out / "all.html").read_text()
+    one = _problem_html(page, "01")
+    assert '<div class="problem-outer" data-badges="hard">' in one
+    assert "<h2>Problem #01 <span" in one
+    assert 'title="One of the hardest problems"' in one
+    assert 'aria-label="One of the hardest problems"' in one
+    assert "🌶️</span></h2>" in one
+
+    two = _problem_html(page, "02")
+    assert "data-badges" not in two
+    assert "🌶️" not in two
+    assert "<h2>Problem #02</h2>" in two
+
+
+def test_badged_problems_appear_where_their_other_tags_put_them(badged, tmpdir):
+    out = pathlib.Path(tmpdir / "out")
+    build(badged, out)
+
+    recursion = (out / "tags" / "recursion.html").read_text()
+    assert "Problem #01" in recursion
+    assert "Problem #03" not in recursion
+
+    # quiz-01 lists "hard" as a tag, but a badge doesn't select problems
+    quiz = (out / "quiz-01.html").read_text()
+    assert "Problem #01" in quiz and "Problem #02" in quiz
+    assert "Problem #03" not in quiz
+
+    assert "Problem #03" in (out / "all.html").read_text()
+
+
+def test_filter_is_on_problem_pages_when_badges_are_configured(badged, tmpdir):
+    for fragment in [False, True]:
+        out = pathlib.Path(tmpdir / f"out-{fragment}")
+        build(badged, out, fragment=fragment)
+
+        for page in [out / "quiz-01.html", out / "all.html", out / "tags" / "graphs.html"]:
+            html = page.read_text()
+            assert '<div class="practicebank-filter"' in html
+            assert 'data-only="hard"' in html
+            assert "🌶️ only</button>" in html
+            assert "practicebank-only" in html  # the script's localStorage key
+            assert '<p class="practicebank-empty" data-only="hard" hidden>' in html
+
+        # the index lists no problems, so it has no filter
+        assert "practicebank-filter" not in (out / "index.html").read_text()
+
+
+def test_filter_is_absent_without_badges(example_1, tmpdir):
+    for fragment in [False, True]:
+        out = pathlib.Path(tmpdir / f"out-{fragment}")
+        build(example_1, out, fragment=fragment)
+
+        for page in [out / "all.html", out / "tags" / "recursion.html"]:
+            html = page.read_text()
+            assert "practicebank-filter" not in html
+            assert "practicebank-only" not in html
+            assert "data-badges" not in html
