@@ -127,6 +127,17 @@ def test_build_fragment_includes_choice_styles(example_1, tmpdir):
     assert ".multiple-choices .choice label" in html
 
 
+def test_choice_inputs_align_with_first_line_of_text(example_1, tmpdir):
+    """A wrapped choice's radio button or checkbox sits level with its first line."""
+    out = pathlib.Path(tmpdir / "out")
+    build(example_1, out)
+
+    html = (out / "all.html").read_text()
+    style = html[html.index("<style>") : html.index("</style>")]
+    assert "align-items: baseline" in style
+    assert "align-items: center" not in style
+
+
 def test_build_fragment_with_template_raises(example_1, tmpdir):
     out = pathlib.Path(tmpdir / "out")
     with raises(ValueError):
@@ -365,3 +376,40 @@ def test_filter_is_absent_without_badges(example_1, tmpdir):
             assert "practicebank-filter" not in html
             assert "practicebank-only" not in html
             assert "data-badges" not in html
+
+
+def _build_unlabelled_code_block(tmpdir, config):
+    root = pathlib.Path(tmpdir) / "example"
+    example = Example(root)
+    example.write_config(config)
+    example.write_problem(
+        "01",
+        "gsmd",
+        dedent(
+            """
+            ---
+            tags: [code]
+            ---
+            ```
+            print(1)
+            ```
+            """
+        ).strip(),
+    )
+
+    out = pathlib.Path(tmpdir / "out")
+    build(root, out, fragment=True)
+    return (out / "tags" / "code.html").read_text()
+
+
+def test_code_blocks_without_a_language_have_no_language_by_default(tmpdir):
+    html = _build_unlabelled_code_block(tmpdir, {"tagsets": []})
+    assert "<code>print(1)</code>" in html
+    assert "language-" not in html
+
+
+def test_code_blocks_without_a_language_use_the_default_code_language(tmpdir):
+    html = _build_unlabelled_code_block(
+        tmpdir, {"tagsets": [], "default_code_language": "python"}
+    )
+    assert '<code class="language-python">print(1)</code>' in html

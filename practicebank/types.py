@@ -43,6 +43,7 @@ class Config(typing.NamedTuple):
     description: str
     tagsets: typing.Mapping[str, TagSet]
     badges: typing.Sequence[Badge] = ()
+    default_code_language: typing.Optional[str] = None
 
 
 class PracticeBank(typing.NamedTuple):

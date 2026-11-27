@@ -121,6 +121,9 @@ which are optional:
   listing every problem with one of its tags. Each has an :code:`identifier`
   (the page's file name), a :code:`title`, a :code:`description`, and
   :code:`tags`: a list of tags, or :code:`__ALL__` for every tag.
+- :code:`default_code_language`: The language given to code blocks that
+  don't name one (e.g., a Markdown fence with no language), so that syntax
+  highlighters that skip unlabelled blocks still highlight them.
 - :code:`badges`: A list of tags to show as a symbol next to a problem's
   number instead of as tags. See below.
 

@@ -60,8 +60,10 @@ _STYLES = dedent(
     """
     <style>
     .multiple-choices .choice label, .multiple-select .choice label {
-        display: flex; align-items: center; gap: 0.6em; margin: 0.25em 0; cursor: pointer;
+        display: flex; align-items: baseline; gap: 0.6em; margin: 0.25em 0; cursor: pointer;
     }
+    /* level the box with the first line of the choice, not the middle of a wrapped one */
+    .multiple-choices .choice input, .multiple-select .choice input { flex: none; margin: 0; }
     .multiple-choices .choice p, .multiple-select .choice p { margin: 0; }
     </style>
     """
@@ -291,17 +293,24 @@ _DSCTEX_ENVIRONMENT_CONVERTERS = {
 # these override panprob's default HTML renderers for specific AST node types
 
 
-def _render_code_node(node: panprob.ast.Code, render_child) -> str:
+def _render_code_node(
+    node: panprob.ast.Code, render_child, default_language: typing.Optional[str] = None
+) -> str:
     """Renders a code block in the conventional form expected by syntax highlighters.
 
     The language is given by a ``language-*`` class on the ``<code>`` element, and
-    blank lines at the start and end of the code are removed.
+    blank lines at the start and end of the code are removed. A block that doesn't
+    name a language (e.g., a Markdown fence with no info string) is given
+    ``default_language``, the config's ``default_code_language``, if one is set, so
+    that highlighters configured to skip blocks without a ``language-*`` class still
+    highlight it. Otherwise it gets no class.
 
     """
     code = re.sub(r"^\s*\n", "", node.code).rstrip()
     code = html.escape(code, quote=False)
-    if node.language:
-        code_class = f' class="language-{html.escape(node.language)}"'
+    language = node.language or default_language
+    if language:
+        code_class = f' class="language-{html.escape(language)}"'
     else:
         code_class = ""
     return f'<pre class="code"><code{code_class}>{code}</code></pre>'
@@ -318,10 +327,14 @@ def _render_align_math_node(node: panprob.ast.AlignMath, render_child) -> str:
     return f'<div class="math">\\[\\begin{{{env}}}{node.latex}\\end{{{env}}}\\]</div>'
 
 
-_NODE_RENDERER_OVERRIDES = {
-    panprob.ast.Code: _render_code_node,
-    panprob.ast.AlignMath: _render_align_math_node,
-}
+def _node_renderer_overrides(default_code_language: typing.Optional[str] = None) -> dict:
+    """The renderers that replace panprob's for some nodes."""
+    return {
+        panprob.ast.Code: functools.partial(
+            _render_code_node, default_language=default_code_language
+        ),
+        panprob.ast.AlignMath: _render_align_math_node,
+    }
 
 
 # renderers ============================================================================
@@ -340,6 +353,9 @@ def _render_vertical_tag_link_list(tags: list[str], relative_path_to_root=".") -
     relative_path_to_root : str, optional
         The relative path from the current page to the root of the website. This
         is used to form the links to the tag pages.
+    default_code_language : Optional[str], optional
+        The language given to code blocks that don't name one. If None, they are
+        given no language.
 
     Returns
     -------
@@ -385,6 +401,7 @@ def _render_problem(
     output: pathlib.Path,
     relative_path_to_root=".",
     badges: typing.Sequence[Badge] = (),
+    default_code_language: typing.Optional[str] = None,
 ) -> str:
     """Renders a problem as HTML.
 
@@ -435,7 +452,7 @@ def _render_problem(
             transform_path=transform_path,
         )
         return panprob.renderers.html.render(
-            tree, overrides=_NODE_RENDERER_OVERRIDES
+            tree, overrides=_node_renderer_overrides(default_code_language)
         )
 
     try:
@@ -588,7 +605,12 @@ def _write_tagset_page(
         problems_html=_render_problem_list(
             pb,
             [
-                _render_problem(problem, output, badges=pb.config.badges)
+                _render_problem(
+                    problem,
+                    output,
+                    badges=pb.config.badges,
+                    default_code_language=pb.config.default_code_language,
+                )
                 for problem in pb.problems
                 if problem.tags.intersection(tags) or tagset.tags == "__ALL__"
             ],
@@ -637,7 +659,11 @@ def _write_tag_page(
             pb,
             [
                 _render_problem(
-                    problem, output, relative_path_to_root="..", badges=pb.config.badges
+                    problem,
+                    output,
+                    relative_path_to_root="..",
+                    badges=pb.config.badges,
+                    default_code_language=pb.config.default_code_language,
                 )
                 for problem in pb.problems
                 if tag in problem.tags
