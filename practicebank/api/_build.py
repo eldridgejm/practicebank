@@ -106,6 +106,7 @@ _FILTER_STYLES = dedent(
         content: ""; position: absolute; top: 2px; left: 2px;
         width: 20px; height: 20px; border-radius: 50%; background: #fff;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease;
+        will-change: transform;
     }
     button[aria-checked="true"] > .practicebank-switch { background: #dc2626; }
     button[aria-checked="true"] > .practicebank-switch::after { transform: translateX(20px); }
@@ -141,13 +142,16 @@ _FILTER_SCRIPT = dedent(
             } catch (e) {}
         }
 
-        function apply(tag) {
+        function setSwitches(tag) {
             filters.forEach(function (f) {
                 f.hidden = false;
                 f.querySelectorAll("button[data-only]").forEach(function (b) {
                     b.setAttribute("aria-checked", String(b.dataset.only === tag));
                 });
             });
+        }
+
+        function filterProblems(tag) {
             lists.forEach(function (list) {
                 var shown = 0;
                 list.querySelectorAll(".problem-outer").forEach(function (p) {
@@ -165,6 +169,44 @@ _FILTER_SCRIPT = dedent(
                 if (tag) { url.searchParams.set("only", tag); } else { url.searchParams.delete("only"); }
                 if (url.href !== location.href) { history.replaceState(history.state, "", url.href); }
             } catch (e) {}
+        }
+
+        // apply a choice at once: on page load, and when another page changes it
+        var pending = null;
+        function apply(tag) {
+            clearTimeout(pending);
+            pending = null;
+            latest++;
+            setSwitches(tag);
+            filterProblems(tag);
+        }
+
+        // on a toggle, move the switch first and filter after its slide: showing or
+        // hiding many problems is a long relayout (a quarter second on a page with a
+        // couple hundred problems and their math), which would freeze the slide if it
+        // ran in the same frame. Toggling again before then replaces the pending
+        // filter, so only the last choice is applied.
+        // With reduced motion the switch doesn't slide, so it only has to be painted
+        // first: the filter runs in a task after the next frame.
+        var SLIDE_MS = 220;  // just over the switch's 0.2s transition
+        var latest = 0;
+        function toggle(tag) {
+            setSwitches(tag);
+            clearTimeout(pending);
+            var id = ++latest;
+            function run() {
+                if (id !== latest) { return; }
+                pending = null;
+                filterProblems(tag);
+            }
+            var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (reduce) {
+                requestAnimationFrame(function () {
+                    if (id === latest) { pending = setTimeout(run, 0); }
+                });
+            } else {
+                pending = setTimeout(run, SLIDE_MS);
+            }
         }
 
         // show the focus ring only for keyboard focus: some browsers count a click on a
@@ -193,7 +235,7 @@ _FILTER_SCRIPT = dedent(
                 var on = b.getAttribute("aria-checked") === "true";
                 var tag = on ? "" : valid(b.dataset.only);
                 save(tag);
-                apply(tag);
+                toggle(tag);
             });
         });
 

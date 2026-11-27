@@ -182,6 +182,10 @@ CSS, included in the page itself:
   toggle, so it can be shared.
 - When the filter hides every problem on a page, the page says so, e.g. "No
   🌶️ problems in this topic."
+- On a toggle, the switch moves at once and the problems are shown or hidden
+  once it has finished sliding (or, with reduced motion, right after it is
+  drawn). Showing a couple hundred problems with math takes the browser a
+  noticeable moment, and this keeps that from freezing the switch.
 - Without JavaScript, the toggle is hidden and every problem is shown.
 
 

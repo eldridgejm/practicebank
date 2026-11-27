@@ -364,6 +364,8 @@ def test_filter_is_on_problem_pages_when_badges_are_configured(badged, tmpdir):
             # one switch per badge, and no separate "All" button
             assert html.count("<button") == 1
             assert "practicebank-only" in html  # the script's localStorage key
+            # a toggle moves the switch first and filters after its slide
+            assert "SLIDE_MS" in html and "requestAnimationFrame" in html
             assert '<p class="practicebank-empty" data-only="hard" hidden>' in html
 
         # the index lists no problems, so it has no filter
