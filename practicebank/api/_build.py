@@ -59,8 +59,10 @@ _STYLES = dedent(
     """
     <style>
     .multiple-choices .choice label, .multiple-select .choice label {
-        display: flex; align-items: center; gap: 0.6em; margin: 0.25em 0; cursor: pointer;
+        display: flex; align-items: baseline; gap: 0.6em; margin: 0.25em 0; cursor: pointer;
     }
+    /* level the box with the first line of the choice, not the middle of a wrapped one */
+    .multiple-choices .choice input, .multiple-select .choice input { flex: none; margin: 0; }
     .multiple-choices .choice p, .multiple-select .choice p { margin: 0; }
     </style>
     """

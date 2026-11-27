@@ -127,6 +127,17 @@ def test_build_fragment_includes_choice_styles(example_1, tmpdir):
     assert ".multiple-choices .choice label" in html
 
 
+def test_choice_inputs_align_with_first_line_of_text(example_1, tmpdir):
+    """A wrapped choice's radio button or checkbox sits level with its first line."""
+    out = pathlib.Path(tmpdir / "out")
+    build(example_1, out)
+
+    html = (out / "all.html").read_text()
+    style = html[html.index("<style>") : html.index("</style>")]
+    assert "align-items: baseline" in style
+    assert "align-items: center" not in style
+
+
 def test_build_fragment_with_template_raises(example_1, tmpdir):
     out = pathlib.Path(tmpdir / "out")
     with raises(ValueError):
