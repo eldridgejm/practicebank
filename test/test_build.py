@@ -222,3 +222,40 @@ def test_minted_language_is_read_when_options_are_given(tmpdir):
 
     html = (out / "tags" / "code.html").read_text()
     assert '<code class="language-python">print(1)</code>' in html
+
+
+def _build_unlabelled_code_block(tmpdir, config):
+    root = pathlib.Path(tmpdir) / "example"
+    example = Example(root)
+    example.write_config(config)
+    example.write_problem(
+        "01",
+        "gsmd",
+        dedent(
+            """
+            ---
+            tags: [code]
+            ---
+            ```
+            print(1)
+            ```
+            """
+        ).strip(),
+    )
+
+    out = pathlib.Path(tmpdir / "out")
+    build(root, out, fragment=True)
+    return (out / "tags" / "code.html").read_text()
+
+
+def test_code_blocks_without_a_language_have_no_language_by_default(tmpdir):
+    html = _build_unlabelled_code_block(tmpdir, {"tagsets": []})
+    assert "<code>print(1)</code>" in html
+    assert "language-" not in html
+
+
+def test_code_blocks_without_a_language_use_the_default_code_language(tmpdir):
+    html = _build_unlabelled_code_block(
+        tmpdir, {"tagsets": [], "default_code_language": "python"}
+    )
+    assert '<code class="language-python">print(1)</code>' in html

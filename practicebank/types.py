@@ -29,6 +29,7 @@ class Config(typing.NamedTuple):
 
     description: str
     tagsets: typing.Mapping[str, TagSet]
+    default_code_language: typing.Optional[str] = None
 
 
 class PracticeBank(typing.NamedTuple):

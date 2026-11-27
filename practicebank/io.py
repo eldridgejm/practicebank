@@ -110,6 +110,11 @@ def _load_config(path: pathlib.Path) -> Config:
         "type": "dict",
         "optional_keys": {
             "description": {"type": "string", "nullable": True, "default": None},
+            "default_code_language": {
+                "type": "string",
+                "nullable": True,
+                "default": None,
+            },
             "tagsets": {
                 "type": "list",
                 "default": {},
@@ -137,6 +142,7 @@ def _load_config(path: pathlib.Path) -> Config:
     return Config(
         description=config["description"],
         tagsets=tagsets,
+        default_code_language=config["default_code_language"],
     )
 
 
