@@ -208,6 +208,41 @@ def test_math_uses_default_mathjax_delimiters(tmpdir):
     assert "$" not in html
 
 
+def test_inline_math_is_kept_with_the_punctuation_after_it(tmpdir):
+    root = pathlib.Path(tmpdir) / "example"
+    example = Example(root)
+    example.write_config({"tagsets": []})
+    example.write_problem(
+        "01",
+        "dsctex",
+        dedent(
+            r"""
+            %% tags: [math]
+
+            \begin{prob}
+                It is $O(n^3)$, though $x$ is not $y$.
+            \end{prob}
+            """
+        ).strip(),
+    )
+
+    out = pathlib.Path(tmpdir / "out")
+    build(root, out)
+
+    html = (out / "tags" / "math.html").read_text()
+    assert (
+        '<span class="math-with-punctuation"><span class="math">\\(O(n^3)\\)</span>,</span>'
+        in html
+    )
+    assert (
+        '<span class="math-with-punctuation"><span class="math">\\(y\\)</span>.</span>'
+        in html
+    )
+    # math without punctuation after it is left alone
+    assert 'though <span class="math">\\(x\\)</span> is' in html
+    assert ".math-with-punctuation { white-space: nowrap; }" in html
+
+
 def test_minted_language_is_read_when_options_are_given(tmpdir):
     root = pathlib.Path(tmpdir) / "example"
     example = Example(root)

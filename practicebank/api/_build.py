@@ -65,6 +65,8 @@ _STYLES = dedent(
     /* level the box with the first line of the choice, not the middle of a wrapped one */
     .multiple-choices .choice input, .multiple-select .choice input { flex: none; margin: 0; }
     .multiple-choices .choice p, .multiple-select .choice p { margin: 0; }
+    /* inline math and the punctuation right after it; see _keep_math_with_punctuation */
+    .math-with-punctuation { white-space: nowrap; }
     </style>
     """
 ).strip()
@@ -422,6 +424,30 @@ def _render_align_math_node(node: panprob.ast.AlignMath, render_child) -> str:
     return f'<div class="math">\\[\\begin{{{env}}}{node.latex}\\end{{{env}}}\\]</div>'
 
 
+# inline math, as panprob renders it, followed by punctuation (text, so possibly
+# escaped as an HTML entity)
+_MATH_WITH_PUNCTUATION = re.compile(
+    r'(<span class="math">\\\((?:(?!</span>).)*\\\)</span>)'
+    r"((?:[,.;:!?)\]'\"\u2019\u201d]|&#x27;|&#39;|&quot;)+)",
+    re.DOTALL,
+)
+
+
+def _keep_math_with_punctuation(html: str) -> str:
+    """Keeps inline math together with the punctuation right after it.
+
+    Browsers may break a line on either side of the element that MathJax draws for
+    inline math, even before a comma, so "is $O(n^3)$, though" can wrap with the
+    comma alone at the start of the next line. This wraps each inline math span and
+    the punctuation that follows it in a ``<span class="math-with-punctuation">``,
+    which the page's styles keep from wrapping.
+
+    """
+    return _MATH_WITH_PUNCTUATION.sub(
+        r'<span class="math-with-punctuation">\1\2</span>', html
+    )
+
+
 def _node_renderer_overrides(default_code_language: typing.Optional[str] = None) -> dict:
     """The renderers that replace panprob's for some nodes."""
     return {
@@ -551,7 +577,7 @@ def _render_problem(
         )
 
     try:
-        html = _render_with_panprob()
+        html = _keep_math_with_punctuation(_render_with_panprob())
     except panprob.exceptions.ParseError as exc:
         raise exceptions.ProblemError(problem.identifier, str(exc))
 
