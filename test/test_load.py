@@ -429,7 +429,12 @@ def test_reads_badges(tmpdir):
         {
             "tagsets": [],
             "badges": [
-                {"tag": "hard", "symbol": "🌶️", "title": "One of the hardest"},
+                {
+                    "tag": "hard",
+                    "symbol": "🌶️",
+                    "title": "One of the hardest",
+                    "filter_label": "Show only the hardest problems 🌶️",
+                },
                 {"tag": "new", "symbol": "★"},
             ],
         }
@@ -439,6 +444,8 @@ def test_reads_badges(tmpdir):
     hard, new = pb.config.badges
     assert (hard.tag, hard.symbol, hard.title) == ("hard", "🌶️", "One of the hardest")
     assert (new.tag, new.symbol, new.title) == ("new", "★", None)
+    assert hard.filter_label == "Show only the hardest problems 🌶️"
+    assert new.filter_label is None
 
 
 def test_raises_if_badge_is_missing_its_symbol(tmpdir):

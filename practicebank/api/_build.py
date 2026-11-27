@@ -80,25 +80,35 @@ _STYLES = dedent(
 _FILTER_STYLES = dedent(
     """
     <style>
-    .practicebank-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em 1.5em; margin: 1em 0; }
+    .practicebank-filter {
+        display: flex; flex-direction: column; gap: 0.25em;
+        margin: 1.5em 0; padding: 0.6em 0;
+        border-top: 1px solid rgba(128, 128, 128, 0.3);
+        border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+    }
     .practicebank-filter[hidden] { display: none; }
     .practicebank-filter button[role="switch"] {
-        display: inline-flex; align-items: center; gap: 0.6em; padding: 0.2em 0.3em;
-        border: 0; border-radius: 0.4em; background: none; color: inherit; font: inherit;
-        cursor: pointer;
+        -webkit-appearance: none; appearance: none;
+        display: flex; align-items: center; gap: 0.75em; width: 100%;
+        margin: 0; padding: 0.35em 0.25em; border: 0; border-radius: 6px;
+        background: none; box-shadow: none; color: inherit;
+        font: inherit; line-height: inherit; text-align: left; cursor: pointer;
     }
-    .practicebank-filter button[role="switch"]:focus-visible { outline: 2px solid #3b82f6; outline-offset: 2px; }
+    .practicebank-filter button[role="switch"]:focus { outline: none; }
+    .practicebank-filter button[role="switch"]:focus-visible:not([data-pointer]) {
+        outline: 2px solid #3b82f6; outline-offset: 2px;
+    }
     .practicebank-switch {
-        position: relative; flex: none; width: 2.4em; height: 1.4em; border-radius: 0.7em;
+        position: relative; flex: none; width: 44px; height: 24px; border-radius: 12px;
         background: #9ca3af; transition: background-color 0.2s ease;
     }
     .practicebank-switch::after {
-        content: ""; position: absolute; top: 0.2em; left: 0.2em;
-        width: 1em; height: 1em; border-radius: 50%; background: #fff;
+        content: ""; position: absolute; top: 2px; left: 2px;
+        width: 20px; height: 20px; border-radius: 50%; background: #fff;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: transform 0.2s ease;
     }
     button[aria-checked="true"] > .practicebank-switch { background: #dc2626; }
-    button[aria-checked="true"] > .practicebank-switch::after { transform: translateX(1em); }
+    button[aria-checked="true"] > .practicebank-switch::after { transform: translateX(20px); }
     @media (prefers-reduced-motion: reduce) {
         .practicebank-switch, .practicebank-switch::after { transition: none; }
     }
@@ -157,6 +167,24 @@ _FILTER_SCRIPT = dedent(
             } catch (e) {}
         }
 
+        // show the focus ring only for keyboard focus: some browsers count a click on a
+        // button as focus-visible, so a switch clicked with the pointer is marked
+        // until it is next used from the keyboard or loses focus
+        filters.forEach(function (f) {
+            f.addEventListener("pointerdown", function (event) {
+                var b = event.target.closest("button[data-only]");
+                if (b) { b.setAttribute("data-pointer", ""); }
+            });
+            f.addEventListener("keydown", function (event) {
+                var b = event.target.closest("button[data-only]");
+                if (b) { b.removeAttribute("data-pointer"); }
+            });
+            f.addEventListener("focusout", function (event) {
+                var b = event.target.closest("button[data-only]");
+                if (b) { b.removeAttribute("data-pointer"); }
+            });
+        });
+
         filters.forEach(function (f) {
             f.addEventListener("click", function (event) {
                 var b = event.target.closest("button[data-only]");
@@ -188,17 +216,22 @@ _FILTER_SCRIPT = dedent(
 
 
 def _render_filter(badges: typing.Sequence[Badge]) -> str:
-    """Renders a "🌶️ only" switch per badge, or nothing if there are no badges."""
+    """Renders a switch per badge, or nothing if there are no badges.
+
+    Each switch is labelled with its badge's ``filter_label``, or "<symbol> only".
+
+    """
     if not badges:
         return ""
     switches = []
     for badge in badges:
         title = html.escape(badge.title or badge.tag)
+        label = badge.filter_label or f"{badge.symbol} only"
         switches.append(
             f'<button type="button" role="switch" aria-checked="false" '
             f'data-only="{html.escape(badge.tag)}" title="{title}">'
             '<span class="practicebank-switch" aria-hidden="true"></span>'
-            f'<span class="practicebank-switch-label">{html.escape(badge.symbol)} only</span>'
+            f'<span class="practicebank-switch-label">{html.escape(label)}</span>'
             "</button>"
         )
     return (

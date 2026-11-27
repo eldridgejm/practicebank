@@ -417,3 +417,31 @@ def test_code_blocks_without_a_language_use_the_default_code_language(tmpdir):
         tmpdir, {"tagsets": [], "default_code_language": "python"}
     )
     assert '<code class="language-python">print(1)</code>' in html
+
+
+def test_filter_label_can_be_configured(tmpdir):
+    root = pathlib.Path(tmpdir) / "labelled"
+    example = Example(root)
+    example.write_config(
+        {
+            "tagsets": [],
+            "badges": [
+                {
+                    "tag": "hard",
+                    "symbol": "🌶️",
+                    "filter_label": "Show only the <hardest> problems 🌶️",
+                }
+            ],
+        }
+    )
+    example.write_problem("01", "gsmd", "---\ntags: [recursion, hard]\n---\nOne.")
+
+    out = pathlib.Path(tmpdir / "out")
+    build(root, out, fragment=True)
+
+    html = (out / "tags" / "recursion.html").read_text()
+    assert (
+        '<span class="practicebank-switch-label">'
+        "Show only the &lt;hardest&gt; problems 🌶️</span>"
+    ) in html
+    assert "🌶️ only" not in html

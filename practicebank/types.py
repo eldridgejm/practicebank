@@ -35,6 +35,7 @@ class Badge(typing.NamedTuple):
     tag: str
     symbol: str
     title: typing.Optional[str] = None
+    filter_label: typing.Optional[str] = None
 
 
 class Config(typing.NamedTuple):

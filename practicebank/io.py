@@ -131,6 +131,11 @@ def _load_config(path: pathlib.Path) -> Config:
                     },
                     "optional_keys": {
                         "title": {"type": "string", "nullable": True, "default": None},
+                        "filter_label": {
+                            "type": "string",
+                            "nullable": True,
+                            "default": None,
+                        },
                     },
                 },
             },
@@ -154,7 +159,12 @@ def _load_config(path: pathlib.Path) -> Config:
         raise ConfigError(path, str(exc.message))
 
     badges = tuple(
-        Badge(tag=b["tag"], symbol=b["symbol"], title=b["title"])
+        Badge(
+            tag=b["tag"],
+            symbol=b["symbol"],
+            title=b["title"],
+            filter_label=b["filter_label"],
+        )
         for b in config["badges"]
     )
 

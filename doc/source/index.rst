@@ -153,6 +153,9 @@ A badge is a tag that is shown as a symbol after the problem's number, as in
 - :code:`symbol`: The text shown after the problem's number.
 - :code:`title` (optional): A tooltip for the symbol, also used as its
   accessible label. Defaults to the tag.
+- :code:`filter_label` (optional): The label of the badge's filter switch
+  (see below), e.g. "Show only the hardest problems 🌶️". Defaults to the
+  symbol followed by "only", as in "🌶️ only".
 
 A badge's tag gets no tag page, and isn't listed on the index, on tagset pages
 (even a tagset that names it, or uses :code:`__ALL__`), or with a problem's
@@ -163,10 +166,13 @@ listing its badges' tags.
 
 When badges are configured, each page that lists problems (tagset pages and
 tag pages, standalone or :code:`--fragment`) has a switch at the top for each
-badge, labelled with its symbol, as in "🌶️ only". Off, the page shows every
+badge, labelled with its :code:`filter_label` or, by default, its symbol, as
+in "🌶️ only". The switches sit between two thin rules, in the page's own font
+and colors, and each whole row is clickable. Off, the page shows every
 problem; on, only the problems with that badge (turning one switch on turns
 the others off). Each switch is a :code:`<button role="switch">`, so it works
-from the keyboard and with screen readers. It's plain inline JavaScript and
+from the keyboard and with screen readers; its focus ring shows only for
+keyboard focus. It's plain inline JavaScript and
 CSS, included in the page itself:
 
 - The choice is kept in the browser's :code:`localStorage`, so it carries over
